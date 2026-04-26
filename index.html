@@ -32,7 +32,6 @@
       --radius-lg:   16px;
       --shadow:      0 1px 3px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
       --shadow-md:   0 4px 16px rgba(0,0,0,0.09);
-      --google-blue: #4285F4;
     }
     html { scroll-behavior: smooth; }
     body {
@@ -97,64 +96,11 @@
     .hero h1 em { font-style: italic; color: var(--green); }
     .hero p { font-size: 13.5px; color: var(--muted); }
 
-    /* ── GEMINI KEY NOTICE ── */
-    .apikey-notice {
-      background: #EEF4FF; border: 1px solid #BFDBFE;
-      border-radius: var(--radius-lg); padding: 1.4rem 1.5rem;
-      margin-bottom: 1.5rem;
-    }
-    .apikey-notice-head {
-      display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
-    }
-    .gemini-badge {
-      display: inline-flex; align-items: center; gap: 6px;
-      background: var(--google-blue); color: #fff;
-      font-size: 11px; font-weight: 700; padding: 3px 10px;
-      border-radius: 999px; flex-shrink: 0;
-    }
-    .apikey-notice h3 { font-size: 14.5px; font-weight: 700; color: var(--text); }
-    .apikey-notice p { font-size: 12.5px; color: var(--muted); margin-bottom: 12px; }
-    .steps { list-style: none; margin-bottom: 14px; display: flex; flex-direction: column; gap: 5px; }
-    .steps li {
-      font-size: 12.5px; color: var(--muted);
-      display: flex; align-items: flex-start; gap: 8px;
-    }
-    .step-num {
-      width: 18px; height: 18px; border-radius: 50%;
-      background: var(--google-blue); color: #fff;
-      font-size: 10px; font-weight: 800;
-      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-    }
-    .steps a { color: var(--google-blue); font-weight: 600; }
-    .apikey-wrap { display: flex; gap: 8px; }
-    .apikey-wrap input {
-      flex: 1; height: 36px; padding: 0 12px;
-      border: 1.5px solid #93C5FD; border-radius: var(--radius-sm);
-      font-size: 12.5px; font-family: monospace;
-      background: #fff; color: var(--text); outline: none;
-      transition: border-color .15s;
-    }
-    .apikey-wrap input:focus { border-color: var(--google-blue); }
-    .apikey-save {
-      height: 36px; padding: 0 16px;
-      background: var(--google-blue); color: #fff;
-      border: none; border-radius: var(--radius-sm);
-      font-size: 13px; font-weight: 700; font-family: inherit;
-      cursor: pointer; transition: opacity .12s; white-space: nowrap;
-    }
-    .apikey-save:hover { opacity: .85; }
-    .free-badge {
-      display: inline-block; font-size: 10.5px; font-weight: 700;
-      background: var(--green-light); color: var(--green);
-      border: 1px solid var(--green-mid); border-radius: 999px;
-      padding: 1px 8px; margin-left: 6px; vertical-align: middle;
-    }
-
     /* ── SEARCH PROMPT ── */
     .search-prompt {
       background: var(--card); border: 2px dashed var(--border);
       border-radius: var(--radius-lg); padding: 2.75rem 1.5rem;
-      text-align: center; margin-bottom: 1.5rem; display: none;
+      text-align: center; margin-bottom: 1.5rem;
     }
     .sp-icon { font-size: 38px; margin-bottom: 12px; }
     .search-prompt h3 { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 5px; }
@@ -259,7 +205,7 @@
     .badge { font-size: 10.5px; font-weight: 700; padding: 2px 9px; border-radius: 999px; }
     .b-save { background: var(--green-light); color: var(--green); }
     .b-cat { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
-    .b-live { background: var(--blue-light); color: var(--blue); }
+    .b-ai { background: var(--blue-light); color: var(--blue); }
     .retailers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 7px; }
     .ri { border: 1px solid var(--border-soft); border-radius: var(--radius-sm); padding: 9px 11px; position: relative; transition: border-color .12s; }
     .ri.best { border: 2px solid var(--green); background: var(--green-light); }
@@ -270,8 +216,6 @@
     .ri.best .ri-price { color: var(--green); }
     .ri-na { font-size: 12px; color: var(--subtle); }
     .ri-best-label { font-size: 9.5px; font-weight: 700; color: var(--green); margin-top: 2px; }
-    .ri-link { font-size: 10px; color: var(--green); text-decoration: none; display: block; margin-top: 3px; opacity: .75; }
-    .ri-link:hover { opacity: 1; text-decoration: underline; }
 
     /* ── STATE BOXES ── */
     .state-box { text-align: center; padding: 4rem 1rem; color: var(--muted); }
@@ -290,10 +234,6 @@
       text-align: center; font-size: 11.5px; color: var(--subtle);
       padding: 1.75rem 1rem; border-top: 1px solid var(--border); margin-top: 2rem;
     }
-    footer button {
-      font-size: 11.5px; color: var(--muted); background: none;
-      border: none; cursor: pointer; font-family: inherit; text-decoration: underline;
-    }
 
     /* ── RESPONSIVE ── */
     @media (max-width: 520px) {
@@ -301,8 +241,6 @@
       .logo-name { display: none; }
       .hero h1 { font-size: 24px; }
       .retailers-grid { grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); }
-      .apikey-wrap { flex-direction: column; }
-      .apikey-save { width: 100%; }
     }
   </style>
 </head>
@@ -340,29 +278,7 @@
   <!-- HERO -->
   <div class="hero">
     <h1>Save money on every shop.<br><em>Compare prices</em> in seconds.</h1>
-    <p>Real-time prices from Naivas, Carrefour, Quickmart, Chandarana &amp; Eastmatt — powered by AI.</p>
-  </div>
-
-  <!-- GEMINI KEY NOTICE -->
-  <div class="apikey-notice" id="apikeyNotice">
-    <div class="apikey-notice-head">
-      <div class="gemini-badge">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-        Gemini AI
-      </div>
-      <h3>Enter your free Gemini API key <span class="free-badge">FREE</span></h3>
-    </div>
-    <p>No credit card needed. Google gives you 1,500 free searches per day.</p>
-    <ol class="steps">
-      <li><span class="step-num">1</span> Go to <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com/app/apikey</a></li>
-      <li><span class="step-num">2</span> Sign in with your Google account</li>
-      <li><span class="step-num">3</span> Click <strong>"Create API key"</strong> and copy it</li>
-      <li><span class="step-num">4</span> Paste it below and click Save</li>
-    </ol>
-    <div class="apikey-wrap">
-      <input type="password" id="apikeyInput" placeholder="AIzaSy…" autocomplete="off" />
-      <button class="apikey-save" onclick="saveApiKey()">Save &amp; Start</button>
-    </div>
+    <p>AI-estimated prices across Naivas, Carrefour, Quickmart, Chandarana &amp; Eastmatt — in KES.</p>
   </div>
 
   <!-- FETCH PROGRESS -->
@@ -372,8 +288,8 @@
       <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
     </svg>
     <div class="fb-body">
-      <strong id="fbTitle">Fetching live prices…</strong>
-      <span id="fbSub">Searching retailer websites for real-time prices</span>
+      <strong id="fbTitle">Fetching prices…</strong>
+      <span id="fbSub">Asking Claude AI for current retailer prices</span>
       <div class="rp-list" id="rpList"></div>
     </div>
   </div>
@@ -385,7 +301,7 @@
   <div id="searchPrompt" class="search-prompt">
     <div class="sp-icon">🛒</div>
     <h3>Search for any grocery product</h3>
-    <p>Type a product name and we'll fetch real-time prices from all major Kenyan supermarkets.</p>
+    <p>Type a product name and we'll compare AI-estimated prices across major Kenyan supermarkets.</p>
     <div class="quick-chips">
       <button class="qchip" onclick="quickSearch('Sugar')">Sugar</button>
       <button class="qchip" onclick="quickSearch('Unga')">Unga</button>
@@ -428,66 +344,19 @@
 </div>
 
 <footer>
-  BeiSawa &mdash; Powered by <strong>Google Gemini</strong> (free) &middot; Prices in <strong>KES</strong>
-  &nbsp;·&nbsp;
-  <button onclick="clearApiKey()">Change API key</button>
+  BeiSawa &mdash; Powered by <strong>Claude AI</strong> &middot; Prices in <strong>KES</strong> &middot; Estimates only
 </footer>
 
 <script>
-  /* ─────────────────────────────
-     CONFIG
-  ───────────────────────────── */
   const RETAILERS = [
     { name: "Naivas" }, { name: "Carrefour" }, { name: "Quickmart" },
     { name: "Chandarana" }, { name: "Eastmatt" }
   ];
   const RETAILER_NAMES = RETAILERS.map(r => r.name);
 
-  // Gemini model — gemini-1.5-flash is free and fast
-  const GEMINI_MODEL = "gemini-1.5-flash";
-  const GEMINI_ENDPOINT = key =>
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${key}`;
-
   let allProducts = [], priceCache = {}, currentQuery = "", activeCategory = "all";
-  let API_KEY = localStorage.getItem("beisawa_gemini_key") || "";
 
-  /* ─────────────────────────────
-     API KEY MANAGEMENT
-  ───────────────────────────── */
-  function initApiKeyUI() {
-    const notice = document.getElementById("apikeyNotice");
-    const prompt = document.getElementById("searchPrompt");
-    if (API_KEY) {
-      notice.style.display = "none";
-      prompt.style.display = "block";
-    } else {
-      notice.style.display = "block";
-      prompt.style.display = "none";
-    }
-  }
-
-  function saveApiKey() {
-    const val = document.getElementById("apikeyInput").value.trim();
-    if (!val || val.length < 20) {
-      alert("Please enter a valid Gemini API key (starts with AIza…).");
-      return;
-    }
-    API_KEY = val;
-    localStorage.setItem("beisawa_gemini_key", val);
-    document.getElementById("apikeyNotice").style.display = "none";
-    document.getElementById("searchPrompt").style.display = "block";
-  }
-
-  function clearApiKey() {
-    API_KEY = "";
-    localStorage.removeItem("beisawa_gemini_key");
-    document.getElementById("apikeyInput").value = "";
-    initApiKeyUI();
-  }
-
-  /* ─────────────────────────────
-     HELPERS
-  ───────────────────────────── */
+  /* ── HELPERS ── */
   function esc(s) {
     return String(s || "")
       .replace(/&/g,"&amp;").replace(/</g,"&lt;")
@@ -507,9 +376,7 @@
     return v.length ? Math.min(...v) : Infinity;
   }
 
-  /* ─────────────────────────────
-     SEARCH FLOW
-  ───────────────────────────── */
+  /* ── SEARCH ── */
   function quickSearch(term) {
     document.getElementById("searchInput").value = term;
     handleSearch();
@@ -522,11 +389,6 @@
   }
 
   function handleSearch() {
-    if (!API_KEY) {
-      document.getElementById("apikeyNotice").style.display = "block";
-      document.getElementById("apikeyInput").focus();
-      return;
-    }
     const q = document.getElementById("searchInput").value.trim();
     if (!q) return;
     currentQuery = q;
@@ -540,22 +402,11 @@
     fetchPrices(q);
   }
 
-  /* ─────────────────────────────
-     FETCH – Google Gemini API
-     Free tier: 1,500 req/day
-     Model: gemini-1.5-flash
-  ───────────────────────────── */
+  /* ── FETCH via Anthropic API ── */
   async function fetchPrices(query) {
     showFetchUI(query);
 
-    const prompt = `You are a Kenyan supermarket price comparison assistant. Your task is to provide realistic current market prices for "${query}" from these Kenyan supermarkets:
-- Naivas
-- Carrefour Kenya
-- Quickmart
-- Chandarana
-- Eastmatt
-
-Use your knowledge of Kenyan supermarket pricing to provide realistic KES prices for all common variants/sizes of this product. If a retailer is unlikely to carry a specific variant, use null.
+    const prompt = `You are a Kenyan supermarket price comparison assistant. Provide realistic current market prices for "${query}" from these Kenyan supermarkets: Naivas, Carrefour Kenya, Quickmart, Chandarana, Eastmatt.
 
 Return ONLY a valid JSON array with no markdown, no explanation, no preamble. Format exactly:
 [
@@ -564,52 +415,39 @@ Return ONLY a valid JSON array with no markdown, no explanation, no preamble. Fo
     "category": "one of: grains|dairy|oil|sugar|meat|beverages|household|other",
     "unit": "e.g. 2kg bag",
     "Naivas": 250,
-    "Naivas_url": null,
     "Carrefour": 240,
-    "Carrefour_url": null,
     "Quickmart": 255,
-    "Quickmart_url": null,
     "Chandarana": 248,
-    "Chandarana_url": null,
-    "Eastmatt": null,
-    "Eastmatt_url": null
+    "Eastmatt": null
   }
 ]
 
-Include at least 3-6 product variants if they exist (different brands, sizes). Prices must be realistic KES numbers based on current Kenyan market rates.`;
+Include 3–6 product variants (different brands/sizes). Use null if a retailer is unlikely to carry that variant. Prices must be realistic KES numbers based on current Kenyan market rates.`;
 
     try {
       RETAILER_NAMES.forEach(r => setChip(r, "loading"));
 
-      const resp = await fetch(GEMINI_ENDPOINT(API_KEY), {
+      const resp = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.2,
-            maxOutputTokens: 4096,
-          }
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          messages: [{ role: "user", content: prompt }]
         })
       });
 
       if (!resp.ok) {
         const e = await resp.json().catch(() => ({}));
-        if (resp.status === 400 || resp.status === 401 || resp.status === 403) {
-          clearApiKey();
-          throw new Error("Invalid Gemini API key. Please enter a valid key.");
-        }
-        throw new Error(e.error?.message || "Gemini API error " + resp.status);
+        throw new Error(e.error?.message || "API error " + resp.status);
       }
 
       const data = await resp.json();
-
-      // Extract text from Gemini response format
-      const raw = (data?.candidates?.[0]?.content?.parts?.[0]?.text || "").trim()
+      const raw = (data?.content?.[0]?.text || "").trim()
         .replace(/^```json\s*/i, "").replace(/^```\s*/i, "")
         .replace(/\s*```$/i, "").trim();
 
-      if (!raw) throw new Error("Empty response from Gemini");
+      if (!raw) throw new Error("Empty response from AI");
 
       RETAILER_NAMES.forEach(r => setChip(r, "done"));
 
@@ -617,7 +455,7 @@ Include at least 3-6 product variants if they exist (different brands, sizes). P
       try { products = JSON.parse(raw); }
       catch {
         const m = raw.match(/\[[\s\S]*\]/);
-        if (!m) throw new Error("Cannot parse Gemini response as JSON");
+        if (!m) throw new Error("Cannot parse AI response as JSON");
         products = JSON.parse(m[0]);
       }
 
@@ -642,14 +480,12 @@ Include at least 3-6 product variants if they exist (different brands, sizes). P
     }
   }
 
-  /* ─────────────────────────────
-     UI STATE HELPERS
-  ───────────────────────────── */
+  /* ── UI STATE ── */
   function showFetchUI(query) {
     document.getElementById("searchPrompt").style.display = "none";
     document.getElementById("errorBox").classList.remove("on");
     document.getElementById("fbTitle").textContent = `Searching for "${query}" prices…`;
-    document.getElementById("fbSub").textContent = "Asking Gemini AI for current retailer prices";
+    document.getElementById("fbSub").textContent = "Asking Claude AI for current retailer prices";
     document.getElementById("rpList").innerHTML = RETAILER_NAMES.map(r =>
       `<div class="rp loading" id="rp-${r}">
         <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 1s linear infinite">
@@ -663,7 +499,7 @@ Include at least 3-6 product variants if they exist (different brands, sizes). P
     document.getElementById("filterChips").classList.remove("on");
     document.getElementById("cacheNotice").classList.remove("on");
     document.getElementById("results").innerHTML =
-      `<div class="state-box"><div class="spinner"></div><p>Fetching prices via Gemini AI…</p></div>`;
+      `<div class="state-box"><div class="spinner"></div><p>Fetching prices via Claude AI…</p></div>`;
     document.getElementById("resultsCount").innerHTML = "";
   }
 
@@ -711,9 +547,7 @@ Include at least 3-6 product variants if they exist (different brands, sizes). P
     document.getElementById("cacheNotice").classList.add("on");
   }
 
-  /* ─────────────────────────────
-     FILTERS & RENDER
-  ───────────────────────────── */
+  /* ── FILTERS & RENDER ── */
   function setCategory(el, cat) {
     document.querySelectorAll(".fchip").forEach(c => c.classList.remove("active"));
     el.classList.add("active"); activeCategory = cat; applyFilters();
@@ -770,10 +604,8 @@ Include at least 3-6 product variants if they exist (different brands, sizes). P
         const entry = prices.find(x => x.retailer === name), price = entry ? entry.price : null;
         const isBest = best && name === best.retailer;
         const cls = price === null ? "ri na" : isBest ? "ri best" : "ri";
-        const link = p[name + "_url"];
-        const linkHtml = link ? `<a class="ri-link" href="${esc(link)}" target="_blank" rel="noopener">View →</a>` : "";
         const priceHtml = price !== null
-          ? `<div class="ri-price">KES ${price.toLocaleString()}</div>${isBest ? '<div class="ri-best-label">Best price ✓</div>' : ""}${linkHtml}`
+          ? `<div class="ri-price">KES ${price.toLocaleString()}</div>${isBest ? '<div class="ri-best-label">Best price ✓</div>' : ""}`
           : `<div class="ri-na">Not listed</div>`;
         return `<div class="${cls}"><div class="ri-name">${name}</div>${priceHtml}</div>`;
       }).join("");
@@ -784,26 +616,18 @@ Include at least 3-6 product variants if they exist (different brands, sizes). P
               <div class="card-name">${esc(p.name || "")}</div>
               <div class="card-unit">${esc(p.unit || "")}</div>
             </div>
-            <div class="card-badges">${savBadge}${catBadge}<span class="badge b-live">AI</span></div>
+            <div class="card-badges">${savBadge}${catBadge}<span class="badge b-ai">AI</span></div>
           </div>
           <div class="retailers-grid">${retailerCols}</div>
         </div>`;
     }).join("");
   }
 
-  /* ─────────────────────────────
-     EVENT LISTENERS
-  ───────────────────────────── */
+  /* ── EVENT LISTENERS ── */
   document.getElementById("searchInput").addEventListener("keydown", e => {
     if (e.key === "Enter") handleSearch();
   });
-  document.getElementById("apikeyInput").addEventListener("keydown", e => {
-    if (e.key === "Enter") saveApiKey();
-  });
   document.getElementById("sortSel").onchange = applyFilters;
-
-  // Init
-  initApiKeyUI();
 </script>
 </body>
 </html>
