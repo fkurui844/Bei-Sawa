@@ -11,7 +11,7 @@
        After deploying your Apps Script, replace the placeholder.
        ============================================================ -->
   <script>
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID_HERE/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwlfIi-zRGWvKL5WIZBsSOMAsDdrjfyqke_B2KuY2pwGliWWOi2f7qmy93jMDk-ZTK10Q/exec";
   </script>
 
   <style>
@@ -124,6 +124,90 @@
       align-items: center;
     }
     .topbar-search button:hover { color: var(--green-400); }
+
+    /* ── Autocomplete dropdown ── */
+    .autocomplete-dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: var(--white);
+      border: 1px solid var(--gray-300);
+      border-radius: var(--radius-md);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+      z-index: 200;
+      max-height: 340px;
+      overflow-y: auto;
+      display: none;
+    }
+    .autocomplete-dropdown.open { display: block; }
+    .ac-section-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--gray-500);
+      padding: 8px 14px 4px;
+    }
+    .ac-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 14px;
+      cursor: pointer;
+      gap: 10px;
+      transition: background 0.1s;
+    }
+    .ac-item:hover, .ac-item.focused {
+      background: var(--green-50);
+    }
+    .ac-item-left { display: flex; flex-direction: column; min-width: 0; }
+    .ac-item-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--gray-900);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ac-item-name mark {
+      background: none;
+      color: var(--green-600);
+      font-weight: 700;
+    }
+    .ac-item-unit {
+      font-size: 11px;
+      color: var(--gray-500);
+      margin-top: 1px;
+    }
+    .ac-item-right { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
+    .ac-best-price {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--green-600);
+      white-space: nowrap;
+    }
+    .ac-best-retailer {
+      font-size: 10px;
+      color: var(--gray-500);
+      white-space: nowrap;
+    }
+    .ac-divider {
+      height: 1px;
+      background: var(--gray-100);
+      margin: 2px 0;
+    }
+    .ac-see-all {
+      padding: 9px 14px;
+      font-size: 13px;
+      color: var(--green-600);
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      border-top: 1px solid var(--gray-100);
+    }
+    .ac-see-all:hover { background: var(--green-50); }
+
     .last-updated {
       font-size: 11px;
       color: var(--gray-500);
@@ -364,12 +448,13 @@
       </a>
 
       <div class="topbar-search">
-        <input type="search" id="searchInput" placeholder='Search e.g. "unga", "milk", "cooking oil"...' autocomplete="off" />
+        <input type="search" id="searchInput" placeholder='Search e.g. "sugar", "milk", "unga"...' autocomplete="off" />
         <button onclick="applyFilters()" aria-label="Search">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
             <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
           </svg>
         </button>
+        <div class="autocomplete-dropdown" id="acDropdown"></div>
       </div>
 
       <span class="last-updated" id="lastUpdated"></span>
@@ -653,11 +738,112 @@
       return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
     }
 
+    /* ── Autocomplete ── */
+    let acFocusedIndex = -1;
+
+    function highlightMatch(text, query) {
+      if (!query) return escHtml(text);
+      const idx = text.toLowerCase().indexOf(query.toLowerCase());
+      if (idx === -1) return escHtml(text);
+      return escHtml(text.slice(0, idx))
+           + '<mark>' + escHtml(text.slice(idx, idx + query.length)) + '</mark>'
+           + escHtml(text.slice(idx + query.length));
+    }
+
+    function showAutocomplete(q) {
+      const dropdown = document.getElementById("acDropdown");
+      if (!q || q.length < 1) { closeAutocomplete(); return; }
+
+      const lower = q.toLowerCase();
+      // Separate exact-start matches from contains matches for better ordering
+      const startMatches = allProducts.filter(p => (p.name || "").toLowerCase().startsWith(lower));
+      const containsMatches = allProducts.filter(p => {
+        const n = (p.name || "").toLowerCase();
+        return n.includes(lower) && !n.startsWith(lower);
+      });
+      const matches = [...startMatches, ...containsMatches].slice(0, 8);
+
+      if (!matches.length) { closeAutocomplete(); return; }
+
+      acFocusedIndex = -1;
+      const total = allProducts.filter(p => (p.name || "").toLowerCase().includes(lower)).length;
+
+      dropdown.innerHTML = matches.map((p, i) => {
+        const prices = getPrices(p);
+        const best   = getBest(prices);
+        const priceHtml = best
+          ? `<div class="ac-best-price">KES ${best.price.toLocaleString()}</div>
+             <div class="ac-best-retailer">at ${best.retailer}</div>`
+          : `<div class="ac-best-retailer" style="margin-top:2px">No price listed</div>`;
+
+        return `
+          <div class="ac-item" data-index="${i}" onmousedown="selectSuggestion(${JSON.stringify(p.name)})">
+            <div class="ac-item-left">
+              <div class="ac-item-name">${highlightMatch(p.name || '', q)}</div>
+              <div class="ac-item-unit">${escHtml(p.unit || '')}</div>
+            </div>
+            <div class="ac-item-right">${priceHtml}</div>
+          </div>`;
+      }).join('');
+
+      if (total > matches.length) {
+        dropdown.innerHTML += `<div class="ac-see-all" onmousedown="selectAll()">See all ${total} results for "<strong>${escHtml(q)}</strong>"</div>`;
+      }
+
+      dropdown.classList.add("open");
+    }
+
+    function closeAutocomplete() {
+      document.getElementById("acDropdown").classList.remove("open");
+      acFocusedIndex = -1;
+    }
+
+    function selectSuggestion(name) {
+      const input = document.getElementById("searchInput");
+      input.value = name;
+      closeAutocomplete();
+      applyFilters();
+      // Scroll results into view
+      setTimeout(() => document.getElementById("results").scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+    }
+
+    function selectAll() {
+      closeAutocomplete();
+      applyFilters();
+      setTimeout(() => document.getElementById("results").scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+    }
+
+    function navigateAutocomplete(direction) {
+      const items = document.querySelectorAll("#acDropdown .ac-item");
+      if (!items.length) return;
+      items.forEach(i => i.classList.remove("focused"));
+      acFocusedIndex = (acFocusedIndex + direction + items.length) % items.length;
+      items[acFocusedIndex].classList.add("focused");
+    }
+
     /* ── Event listeners ── */
-    document.getElementById("searchInput").addEventListener("input",  applyFilters);
-    document.getElementById("searchInput").addEventListener("keydown", e => {
-      if (e.key === "Enter") applyFilters();
+    document.getElementById("searchInput").addEventListener("input", e => {
+      showAutocomplete(e.target.value.trim());
+      applyFilters();
     });
+    document.getElementById("searchInput").addEventListener("keydown", e => {
+      const dropdown = document.getElementById("acDropdown");
+      if (e.key === "ArrowDown") { e.preventDefault(); navigateAutocomplete(1); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); navigateAutocomplete(-1); }
+      else if (e.key === "Enter") {
+        const focused = dropdown.querySelector(".ac-item.focused");
+        if (focused) { focused.dispatchEvent(new MouseEvent("mousedown")); }
+        else { closeAutocomplete(); applyFilters(); }
+      }
+      else if (e.key === "Escape") { closeAutocomplete(); }
+    });
+    document.getElementById("searchInput").addEventListener("focus", e => {
+      if (e.target.value.trim()) showAutocomplete(e.target.value.trim());
+    });
+    document.getElementById("searchInput").addEventListener("blur", () => {
+      setTimeout(closeAutocomplete, 150);
+    });
+    document.getElementById("sortSelect").onchange = applyFilters;
 
     /* ── Boot ── */
     loadData();
