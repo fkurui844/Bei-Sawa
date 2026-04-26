@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BeiSawa – Kenya Price Comparison</title>
+  <meta name="description" content="Compare supermarket prices across Naivas, Carrefour, Quickmart and more. Save money on every shop." />
+
+  <!-- ============================================================
+       STEP 1 — PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL BELOW
+       After deploying your Apps Script, replace the placeholder.
+       ============================================================ -->
+  <script>
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID_HERE/exec";
+  </script>
+
+  <style>
+    /* ── Reset & base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green-50:  #EAF3DE;
+      --green-200: #C0DD97;
+      --green-400: #639922;
+      --green-600: #3B6D11;
+      --green-800: #27500A;
+      --amber-400: #BA7517;
+      --amber-50:  #FAEEDA;
+      --red-400:   #E24B4A;
+      --red-50:    #FCEBEB;
+      --gray-50:   #F7F6F2;
+      --gray-100:  #EDECE8;
+      --gray-300:  #C8C7C0;
+      --gray-500:  #888780;
+      --gray-700:  #4A4A47;
+      --gray-900:  #1C1C1A;
+      --white:     #FFFFFF;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --shadow-card: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--gray-50);
+      color: var(--gray-900);
+      min-height: 100vh;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    /* ── Top bar ── */
+    .topbar {
+      background: var(--white);
+      border-bottom: 1px solid var(--gray-100);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .topbar-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 1rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      height: 56px;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+    .logo-mark {
+      width: 30px;
+      height: 30px;
+      background: var(--green-400);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .logo-mark svg { width: 17px; height: 17px; }
+    .logo-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--gray-900);
+      letter-spacing: -0.4px;
+    }
+    .logo-name span { color: var(--green-400); }
+    .topbar-search {
+      flex: 1;
+      position: relative;
+    }
+    .topbar-search input {
+      width: 100%;
+      height: 36px;
+      padding: 0 40px 0 14px;
+      border: 1px solid var(--gray-300);
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      background: var(--gray-50);
+      color: var(--gray-900);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .topbar-search input:focus { border-color: var(--green-400); background: var(--white); }
+    .topbar-search input::placeholder { color: var(--gray-500); }
+    .topbar-search button {
+      position: absolute;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      color: var(--gray-500);
+      display: flex;
+      align-items: center;
+    }
+    .topbar-search button:hover { color: var(--green-400); }
+    .last-updated {
+      font-size: 11px;
+      color: var(--gray-500);
+      white-space: nowrap;
+      display: none;
+    }
+
+    /* ── Page layout ── */
+    .page { max-width: 900px; margin: 0 auto; padding: 1.25rem 1rem 3rem; }
+
+    /* ── Hero ── */
+    .hero {
+      text-align: center;
+      padding: 2rem 1rem 1.5rem;
+    }
+    .hero h1 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.6px;
+      margin-bottom: 6px;
+      color: var(--gray-900);
+    }
+    .hero h1 em { font-style: normal; color: var(--green-400); }
+    .hero p { font-size: 14px; color: var(--gray-500); }
+
+    /* ── Filter chips ── */
+    .filters {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+    .chip {
+      padding: 5px 14px;
+      font-size: 13px;
+      border: 1px solid var(--gray-300);
+      border-radius: 999px;
+      cursor: pointer;
+      background: var(--white);
+      color: var(--gray-700);
+      font-weight: 500;
+      transition: all 0.12s;
+      user-select: none;
+    }
+    .chip:hover { border-color: var(--green-400); color: var(--green-600); }
+    .chip.active {
+      background: var(--green-50);
+      border-color: var(--green-400);
+      color: var(--green-600);
+    }
+
+    /* ── Sort + meta row ── */
+    .sort-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .results-count { font-size: 13px; color: var(--gray-500); }
+    .results-count strong { color: var(--gray-900); }
+    .sort-row select {
+      font-size: 13px;
+      padding: 5px 10px;
+      border: 1px solid var(--gray-300);
+      border-radius: var(--radius-sm);
+      background: var(--white);
+      color: var(--gray-700);
+      outline: none;
+      cursor: pointer;
+    }
+    .sort-row select:focus { border-color: var(--green-400); }
+
+    /* ── Product card ── */
+    .product-card {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--gray-100);
+      padding: 1rem 1.2rem;
+      margin-bottom: 10px;
+      box-shadow: var(--shadow-card);
+      transition: box-shadow 0.15s;
+    }
+    .product-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.09); }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+      gap: 10px;
+    }
+    .card-title { font-size: 15px; font-weight: 600; color: var(--gray-900); }
+    .card-unit { font-size: 12px; color: var(--gray-500); margin-top: 2px; }
+    .card-badges { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
+    .badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 999px;
+    }
+    .badge-save { background: var(--green-50); color: var(--green-600); }
+    .badge-cat  { background: var(--gray-100); color: var(--gray-700); }
+
+    /* ── Retailer price grid ── */
+    .retailers-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 7px;
+    }
+    .retailer-item {
+      border: 1px solid var(--gray-100);
+      border-radius: var(--radius-md);
+      padding: 9px 11px;
+      position: relative;
+    }
+    .retailer-item.best {
+      border: 2px solid var(--green-400);
+      background: var(--green-50);
+    }
+    .retailer-item.unavail { opacity: 0.4; }
+
+    .retailer-name {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--gray-500);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-bottom: 4px;
+    }
+    .retailer-item.best .retailer-name { color: var(--green-600); }
+
+    .retailer-price {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--gray-900);
+    }
+    .retailer-item.best .retailer-price { color: var(--green-600); }
+    .retailer-na { font-size: 12px; color: var(--gray-500); }
+
+    .best-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--green-600);
+      margin-top: 2px;
+    }
+
+    /* ── States ── */
+    .state-box {
+      text-align: center;
+      padding: 4rem 1rem;
+      color: var(--gray-500);
+    }
+    .state-box svg { width: 40px; height: 40px; margin-bottom: 12px; opacity: 0.4; }
+    .state-box p { font-size: 14px; }
+    .state-box strong { display: block; font-size: 16px; color: var(--gray-700); margin-bottom: 4px; }
+
+    /* Spinner */
+    .spinner {
+      width: 32px; height: 32px;
+      border: 3px solid var(--gray-200);
+      border-top-color: var(--green-400);
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+      margin: 0 auto 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Info banner ── */
+    .info-banner {
+      background: var(--amber-50);
+      border: 1px solid #FAC775;
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--amber-400);
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .info-banner svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px; fill: currentColor; }
+    .info-banner.hidden { display: none; }
+
+    /* ── Retailer legend ── */
+    .legend {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      font-size: 12px;
+      color: var(--gray-500);
+      margin-bottom: 1rem;
+    }
+    .legend-item { display: flex; align-items: center; gap: 5px; }
+    .legend-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+    }
+    .legend-dot.green { background: var(--green-400); }
+    .legend-dot.gray  { border: 1px solid var(--gray-300); }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      font-size: 12px;
+      color: var(--gray-500);
+      padding: 1.5rem 1rem;
+      border-top: 1px solid var(--gray-100);
+      margin-top: 2rem;
+    }
+    footer a { color: var(--green-400); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    /* ── Responsive ── */
+    @media (max-width: 500px) {
+      .topbar-inner { height: 52px; gap: 8px; }
+      .logo-name { display: none; }
+      .hero h1 { font-size: 22px; }
+      .retailers-grid { grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); }
+      .last-updated { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Top navigation bar ── -->
+  <nav class="topbar">
+    <div class="topbar-inner">
+      <a class="logo" href="#">
+        <div class="logo-mark">
+          <!-- Cart icon -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+          </svg>
+        </div>
+        <span class="logo-name">Bei<span>Sawa</span></span>
+      </a>
+
+      <div class="topbar-search">
+        <input type="search" id="searchInput" placeholder='Search e.g. "unga", "milk", "cooking oil"...' autocomplete="off" />
+        <button onclick="applyFilters()" aria-label="Search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+          </svg>
+        </button>
+      </div>
+
+      <span class="last-updated" id="lastUpdated"></span>
+    </div>
+  </nav>
+
+  <!-- ── Main page ── -->
+  <div class="page">
+
+    <!-- Hero -->
+    <div class="hero">
+      <h1>Save money on every shop.<br><em>Compare prices</em> in seconds.</h1>
+      <p>Prices from Naivas, Carrefour, Quickmart, Chandarana &amp; Eastmatt — updated daily.</p>
+    </div>
+
+    <!-- Notice banner (hidden once real data loads) -->
+    <div class="info-banner" id="demoBanner">
+      <svg viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11H9v2h2V7zm0 4H9v4h2v-4z"/></svg>
+      <span>
+        <strong style="display:inline; font-weight:700;">Demo mode:</strong>
+        showing sample data. Connect your Google Sheet to display live prices
+        (see the setup guide in the README).
+      </span>
+    </div>
+
+    <!-- Category filter chips -->
+    <div class="filters" id="filterChips">
+      <div class="chip active" onclick="setCategory(this,'all')">All items</div>
+      <div class="chip" onclick="setCategory(this,'grains')">Grains &amp; Flour</div>
+      <div class="chip" onclick="setCategory(this,'dairy')">Dairy &amp; Eggs</div>
+      <div class="chip" onclick="setCategory(this,'oil')">Cooking Oil</div>
+      <div class="chip" onclick="setCategory(this,'sugar')">Sugar &amp; Salt</div>
+      <div class="chip" onclick="setCategory(this,'beverages')">Beverages</div>
+      <div class="chip" onclick="setCategory(this,'meat')">Meat &amp; Fish</div>
+      <div class="chip" onclick="setCategory(this,'household')">Household</div>
+    </div>
+
+    <!-- Sort + count row -->
+    <div class="sort-row">
+      <div class="results-count" id="resultsCount"></div>
+      <div style="display:flex; align-items:center; gap:6px;">
+        <label for="sortSelect" style="font-size:13px; color:var(--gray-500);">Sort:</label>
+        <select id="sortSelect" onchange="applyFilters()">
+          <option value="savings">Most savings first</option>
+          <option value="az">Name A–Z</option>
+          <option value="price_asc">Lowest price first</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-dot green"></div>
+        <span>Best price at that retailer</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot gray"></div>
+        <span>N/A = not available / not listed</span>
+      </div>
+    </div>
+
+    <!-- Results container -->
+    <div id="results"></div>
+
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>BeiSawa &mdash; Prices updated daily from official retailer websites &middot; All prices in <strong>KES</strong></p>
+    <p style="margin-top:4px;">
+      Built with Google Sheets &amp; GitHub Pages &middot;
+      <a href="https://github.com/YOUR_GITHUB_USERNAME/beisawa" target="_blank">View source on GitHub</a>
+    </p>
+  </footer>
+
+
+  <script>
+    /* ============================================================
+       DEMO DATA
+       This is used when APPS_SCRIPT_URL is not yet configured.
+       Once your Google Sheet is connected, this is replaced by
+       live data from your sheet automatically.
+       ============================================================ */
+    const DEMO_DATA = [
+      { name:"Dola Unga wa Ngano 2kg",    category:"grains",    unit:"2 kg pack",  Naivas:159, Carrefour:149, Quickmart:165, Chandarana:155, Eastmatt:null },
+      { name:"Pembe Maize Flour 2kg",     category:"grains",    unit:"2 kg pack",  Naivas:145, Carrefour:142, Quickmart:148, Chandarana:null, Eastmatt:150 },
+      { name:"Hostess Bread 400g",        category:"grains",    unit:"400 g loaf", Naivas:70,  Carrefour:68,  Quickmart:72,  Chandarana:70,   Eastmatt:null },
+      { name:"Brookside Whole Milk 500ml",category:"dairy",     unit:"500 ml",     Naivas:60,  Carrefour:58,  Quickmart:62,  Chandarana:60,   Eastmatt:63  },
+      { name:"KCC Butter 250g",           category:"dairy",     unit:"250 g",      Naivas:285, Carrefour:270, Quickmart:290, Chandarana:280,  Eastmatt:null },
+      { name:"Farmers Choice Eggs 6pk",   category:"dairy",     unit:"6 pack",     Naivas:85,  Carrefour:80,  Quickmart:88,  Chandarana:null, Eastmatt:87  },
+      { name:"Elianto Cooking Oil 2L",    category:"oil",       unit:"2 litre",    Naivas:480, Carrefour:465, Quickmart:490, Chandarana:475,  Eastmatt:488 },
+      { name:"Zesta Sunflower Oil 1L",    category:"oil",       unit:"1 litre",    Naivas:260, Carrefour:252, Quickmart:268, Chandarana:null, Eastmatt:264 },
+      { name:"Mumias Sugar 2kg",          category:"sugar",     unit:"2 kg pack",  Naivas:235, Carrefour:228, Quickmart:240, Chandarana:233,  Eastmatt:238 },
+      { name:"Kensalt Iodized Salt 1kg",  category:"sugar",     unit:"1 kg",       Naivas:45,  Carrefour:42,  Quickmart:47,  Chandarana:44,   Eastmatt:46  },
+      { name:"Ketepa Pride Tea 100g",     category:"beverages", unit:"100 g box",  Naivas:120, Carrefour:115, Quickmart:125, Chandarana:118,  Eastmatt:122 },
+      { name:"Nescafe Classic 100g",      category:"beverages", unit:"100 g jar",  Naivas:480, Carrefour:465, Quickmart:495, Chandarana:null, Eastmatt:488 },
+      { name:"Tusker Malt 500ml",         category:"beverages", unit:"500 ml can", Naivas:160, Carrefour:155, Quickmart:165, Chandarana:158,  Eastmatt:null },
+      { name:"Fresh Chicken (Whole) 1kg", category:"meat",      unit:"per kg",     Naivas:380, Carrefour:365, Quickmart:395, Chandarana:null, Eastmatt:null },
+      { name:"Tilapia Fillet 500g",       category:"meat",      unit:"500 g pack", Naivas:320, Carrefour:310, Quickmart:null,Chandarana:315,  Eastmatt:330 },
+      { name:"Ariel Washing Powder 1kg",  category:"household", unit:"1 kg pack",  Naivas:340, Carrefour:325, Quickmart:350, Chandarana:335,  Eastmatt:345 },
+      { name:"Omo Multi Active 1kg",      category:"household", unit:"1 kg pack",  Naivas:295, Carrefour:280, Quickmart:305, Chandarana:290,  Eastmatt:300 },
+      { name:"Colgate Toothpaste 75ml",   category:"household", unit:"75 ml tube", Naivas:120, Carrefour:112, Quickmart:125, Chandarana:118,  Eastmatt:122 },
+    ];
+
+    const RETAILERS = ["Naivas","Carrefour","Quickmart","Chandarana","Eastmatt"];
+    let allProducts   = [];
+    let activeCategory = "all";
+
+    /* ── Fetch data from Google Apps Script ── */
+    async function loadData() {
+      showLoading();
+
+      /* Check if the user has configured the Apps Script URL */
+      const isConfigured = APPS_SCRIPT_URL && !APPS_SCRIPT_URL.includes("YOUR_DEPLOYMENT_ID");
+
+      if (!isConfigured) {
+        /* Use demo data */
+        allProducts = DEMO_DATA;
+        document.getElementById("demoBanner").classList.remove("hidden");
+        applyFilters();
+        return;
+      }
+
+      try {
+        const res  = await fetch(APPS_SCRIPT_URL);
+        const json = await res.json();
+
+        if (json.status === "ok" && Array.isArray(json.data)) {
+          allProducts = json.data;
+          document.getElementById("demoBanner").classList.add("hidden");
+
+          /* Show last-updated timestamp if provided */
+          if (json.lastUpdated) {
+            const lu = document.getElementById("lastUpdated");
+            lu.textContent = "Updated: " + json.lastUpdated;
+            lu.style.display = "inline";
+          }
+        } else {
+          throw new Error("Unexpected response format");
+        }
+      } catch (err) {
+        console.error("Failed to load from Google Sheet:", err);
+        allProducts = DEMO_DATA; /* fall back to demo data */
+        document.getElementById("demoBanner").classList.remove("hidden");
+        document.getElementById("demoBanner").querySelector("span").innerHTML =
+          "<strong>Could not reach Google Sheet.</strong> Showing demo data. Check that your Apps Script is deployed as a public web app.";
+      }
+
+      applyFilters();
+    }
+
+    /* ── Helpers ── */
+    function getPrices(p) {
+      return RETAILERS.map(r => ({ retailer: r, price: parseFloat(p[r]) || null }));
+    }
+
+    function getBest(prices) {
+      const valid = prices.filter(x => x.price !== null);
+      if (!valid.length) return null;
+      return valid.reduce((a, b) => a.price < b.price ? a : b);
+    }
+
+    function getSavings(prices) {
+      const vals = prices.filter(x => x.price !== null).map(x => x.price);
+      if (vals.length < 2) return 0;
+      return Math.max(...vals) - Math.min(...vals);
+    }
+
+    function getLowestPrice(prices) {
+      const vals = prices.filter(x => x.price !== null).map(x => x.price);
+      return vals.length ? Math.min(...vals) : Infinity;
+    }
+
+    /* ── Filter, sort, render ── */
+    function setCategory(el, cat) {
+      document.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
+      el.classList.add("active");
+      activeCategory = cat;
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const q      = document.getElementById("searchInput").value.trim().toLowerCase();
+      const sort   = document.getElementById("sortSelect").value;
+
+      let list = allProducts.filter(p => {
+        const catMatch  = activeCategory === "all" || (p.category || "").toLowerCase() === activeCategory;
+        const nameMatch = !q || (p.name || "").toLowerCase().includes(q);
+        return catMatch && nameMatch;
+      });
+
+      /* Sort */
+      list.sort((a, b) => {
+        const pa = getPrices(a), pb = getPrices(b);
+        if (sort === "savings")   return getSavings(pb) - getSavings(pa);
+        if (sort === "az")        return (a.name || "").localeCompare(b.name || "");
+        if (sort === "price_asc") return getLowestPrice(pa) - getLowestPrice(pb);
+        return 0;
+      });
+
+      renderResults(list);
+    }
+
+    /* ── Render product cards ── */
+    function renderResults(list) {
+      const container = document.getElementById("results");
+      const countEl   = document.getElementById("resultsCount");
+
+      if (!list || !list.length) {
+        countEl.innerHTML = "";
+        container.innerHTML = `
+          <div class="state-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+            </svg>
+            <p><strong>No products found</strong>Try a different search term or category.</p>
+          </div>`;
+        return;
+      }
+
+      countEl.innerHTML = `Showing <strong>${list.length}</strong> product${list.length !== 1 ? "s" : ""} &middot; Prices in <strong>KES</strong>`;
+
+      container.innerHTML = list.map(p => {
+        const prices   = getPrices(p);
+        const best     = getBest(prices);
+        const savings  = getSavings(prices);
+        const catLabel = (p.category || "").replace(/_/g, " ");
+
+        const savingsBadge = savings > 0
+          ? `<span class="badge badge-save">Save up to KES ${Math.round(savings)}</span>`
+          : "";
+        const catBadge = catLabel
+          ? `<span class="badge badge-cat">${catLabel}</span>`
+          : "";
+
+        const retailerCols = prices.map(({ retailer, price }) => {
+          const isBest   = best && retailer === best.retailer;
+          const cls      = price === null ? "retailer-item unavail"
+                         : isBest        ? "retailer-item best"
+                         :                 "retailer-item";
+          const priceHtml = price !== null
+            ? `<div class="retailer-price">KES ${price.toLocaleString()}</div>${isBest ? '<div class="best-label">Best price</div>' : ""}`
+            : `<div class="retailer-na">Not listed</div>`;
+
+          return `
+            <div class="${cls}">
+              <div class="retailer-name">${retailer}</div>
+              ${priceHtml}
+            </div>`;
+        }).join("");
+
+        return `
+          <div class="product-card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">${escHtml(p.name || "")}</div>
+                <div class="card-unit">${escHtml(p.unit || "")}</div>
+              </div>
+              <div class="card-badges">${savingsBadge}${catBadge}</div>
+            </div>
+            <div class="retailers-grid">${retailerCols}</div>
+          </div>`;
+      }).join("");
+    }
+
+    /* ── Loading state ── */
+    function showLoading() {
+      document.getElementById("results").innerHTML = `
+        <div class="state-box">
+          <div class="spinner"></div>
+          <p>Loading prices…</p>
+        </div>`;
+      document.getElementById("resultsCount").innerHTML = "";
+    }
+
+    /* ── Utility ── */
+    function escHtml(str) {
+      return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    }
+
+    /* ── Event listeners ── */
+    document.getElementById("searchInput").addEventListener("input",  applyFilters);
+    document.getElementById("searchInput").addEventListener("keydown", e => {
+      if (e.key === "Enter") applyFilters();
+    });
+
+    /* ── Boot ── */
+    loadData();
+  </script>
+
+</body>
+</html>
