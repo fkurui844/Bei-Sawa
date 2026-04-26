@@ -5,440 +5,124 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BeiSawa – Kenya Price Comparison</title>
   <meta name="description" content="Compare supermarket prices across Naivas, Carrefour, Quickmart and more. Save money on every shop." />
-
-  <!-- ============================================================
-       STEP 1 — PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL BELOW
-       After deploying your Apps Script, replace the placeholder.
-       ============================================================ -->
-  <script>
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwlfIi-zRGWvKL5WIZBsSOMAsDdrjfyqke_B2KuY2pwGliWWOi2f7qmy93jMDk-ZTK10Q/exec";
-  </script>
-
   <style>
-    /* ── Reset & base ── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --green-50:  #EAF3DE;
-      --green-200: #C0DD97;
-      --green-400: #639922;
-      --green-600: #3B6D11;
-      --green-800: #27500A;
-      --amber-400: #BA7517;
-      --amber-50:  #FAEEDA;
-      --red-400:   #E24B4A;
-      --red-50:    #FCEBEB;
-      --gray-50:   #F7F6F2;
-      --gray-100:  #EDECE8;
-      --gray-300:  #C8C7C0;
-      --gray-500:  #888780;
-      --gray-700:  #4A4A47;
-      --gray-900:  #1C1C1A;
-      --white:     #FFFFFF;
-      --radius-sm: 6px;
-      --radius-md: 10px;
-      --radius-lg: 14px;
-      --shadow-card: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+      --green-50:#EAF3DE;--green-200:#C0DD97;--green-400:#639922;--green-600:#3B6D11;
+      --amber-50:#FAEEDA;--amber-400:#BA7517;--red-400:#E24B4A;--red-50:#FCEBEB;
+      --blue-50:#EBF4FF;--blue-400:#3B82F6;
+      --gray-50:#F7F6F2;--gray-100:#EDECE8;--gray-200:#DDDCD8;--gray-300:#C8C7C0;
+      --gray-500:#888780;--gray-700:#4A4A47;--gray-900:#1C1C1A;--white:#FFFFFF;
+      --radius-sm:6px;--radius-md:10px;--radius-lg:14px;
+      --shadow-card:0 1px 3px rgba(0,0,0,0.07),0 1px 2px rgba(0,0,0,0.04);
     }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      background: var(--gray-50);
-      color: var(--gray-900);
-      min-height: 100vh;
-      font-size: 15px;
-      line-height: 1.5;
-    }
-
-    /* ── Top bar ── */
-    .topbar {
-      background: var(--white);
-      border-bottom: 1px solid var(--gray-100);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    .topbar-inner {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 0 1rem;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      height: 56px;
-    }
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      text-decoration: none;
-      flex-shrink: 0;
-    }
-    .logo-mark {
-      width: 30px;
-      height: 30px;
-      background: var(--green-400);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .logo-mark svg { width: 17px; height: 17px; }
-    .logo-name {
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--gray-900);
-      letter-spacing: -0.4px;
-    }
-    .logo-name span { color: var(--green-400); }
-    .topbar-search {
-      flex: 1;
-      position: relative;
-    }
-    .topbar-search input {
-      width: 100%;
-      height: 36px;
-      padding: 0 40px 0 14px;
-      border: 1px solid var(--gray-300);
-      border-radius: var(--radius-md);
-      font-size: 14px;
-      background: var(--gray-50);
-      color: var(--gray-900);
-      outline: none;
-      transition: border-color 0.15s;
-    }
-    .topbar-search input:focus { border-color: var(--green-400); background: var(--white); }
-    .topbar-search input::placeholder { color: var(--gray-500); }
-    .topbar-search button {
-      position: absolute;
-      right: 6px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 4px;
-      color: var(--gray-500);
-      display: flex;
-      align-items: center;
-    }
-    .topbar-search button:hover { color: var(--green-400); }
-
-    /* ── Autocomplete dropdown ── */
-    .autocomplete-dropdown {
-      position: absolute;
-      top: calc(100% + 4px);
-      left: 0;
-      right: 0;
-      background: var(--white);
-      border: 1px solid var(--gray-300);
-      border-radius: var(--radius-md);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.12);
-      z-index: 200;
-      max-height: 340px;
-      overflow-y: auto;
-      display: none;
-    }
-    .autocomplete-dropdown.open { display: block; }
-    .ac-section-label {
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      color: var(--gray-500);
-      padding: 8px 14px 4px;
-    }
-    .ac-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 9px 14px;
-      cursor: pointer;
-      gap: 10px;
-      transition: background 0.1s;
-    }
-    .ac-item:hover, .ac-item.focused {
-      background: var(--green-50);
-    }
-    .ac-item-left { display: flex; flex-direction: column; min-width: 0; }
-    .ac-item-name {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--gray-900);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .ac-item-name mark {
-      background: none;
-      color: var(--green-600);
-      font-weight: 700;
-    }
-    .ac-item-unit {
-      font-size: 11px;
-      color: var(--gray-500);
-      margin-top: 1px;
-    }
-    .ac-item-right { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
-    .ac-best-price {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--green-600);
-      white-space: nowrap;
-    }
-    .ac-best-retailer {
-      font-size: 10px;
-      color: var(--gray-500);
-      white-space: nowrap;
-    }
-    .ac-divider {
-      height: 1px;
-      background: var(--gray-100);
-      margin: 2px 0;
-    }
-    .ac-see-all {
-      padding: 9px 14px;
-      font-size: 13px;
-      color: var(--green-600);
-      font-weight: 600;
-      cursor: pointer;
-      text-align: center;
-      border-top: 1px solid var(--gray-100);
-    }
-    .ac-see-all:hover { background: var(--green-50); }
-
-    .last-updated {
-      font-size: 11px;
-      color: var(--gray-500);
-      white-space: nowrap;
-      display: none;
-    }
-
-    /* ── Page layout ── */
-    .page { max-width: 900px; margin: 0 auto; padding: 1.25rem 1rem 3rem; }
-
-    /* ── Hero ── */
-    .hero {
-      text-align: center;
-      padding: 2rem 1rem 1.5rem;
-    }
-    .hero h1 {
-      font-size: 28px;
-      font-weight: 800;
-      letter-spacing: -0.6px;
-      margin-bottom: 6px;
-      color: var(--gray-900);
-    }
-    .hero h1 em { font-style: normal; color: var(--green-400); }
-    .hero p { font-size: 14px; color: var(--gray-500); }
-
-    /* ── Filter chips ── */
-    .filters {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 1rem;
-    }
-    .chip {
-      padding: 5px 14px;
-      font-size: 13px;
-      border: 1px solid var(--gray-300);
-      border-radius: 999px;
-      cursor: pointer;
-      background: var(--white);
-      color: var(--gray-700);
-      font-weight: 500;
-      transition: all 0.12s;
-      user-select: none;
-    }
-    .chip:hover { border-color: var(--green-400); color: var(--green-600); }
-    .chip.active {
-      background: var(--green-50);
-      border-color: var(--green-400);
-      color: var(--green-600);
-    }
-
-    /* ── Sort + meta row ── */
-    .sort-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 1rem;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .results-count { font-size: 13px; color: var(--gray-500); }
-    .results-count strong { color: var(--gray-900); }
-    .sort-row select {
-      font-size: 13px;
-      padding: 5px 10px;
-      border: 1px solid var(--gray-300);
-      border-radius: var(--radius-sm);
-      background: var(--white);
-      color: var(--gray-700);
-      outline: none;
-      cursor: pointer;
-    }
-    .sort-row select:focus { border-color: var(--green-400); }
-
-    /* ── Product card ── */
-    .product-card {
-      background: var(--white);
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--gray-100);
-      padding: 1rem 1.2rem;
-      margin-bottom: 10px;
-      box-shadow: var(--shadow-card);
-      transition: box-shadow 0.15s;
-    }
-    .product-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.09); }
-
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 12px;
-      gap: 10px;
-    }
-    .card-title { font-size: 15px; font-weight: 600; color: var(--gray-900); }
-    .card-unit { font-size: 12px; color: var(--gray-500); margin-top: 2px; }
-    .card-badges { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
-    .badge {
-      font-size: 11px;
-      font-weight: 600;
-      padding: 3px 9px;
-      border-radius: 999px;
-    }
-    .badge-save { background: var(--green-50); color: var(--green-600); }
-    .badge-cat  { background: var(--gray-100); color: var(--gray-700); }
-
-    /* ── Retailer price grid ── */
-    .retailers-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-      gap: 7px;
-    }
-    .retailer-item {
-      border: 1px solid var(--gray-100);
-      border-radius: var(--radius-md);
-      padding: 9px 11px;
-      position: relative;
-    }
-    .retailer-item.best {
-      border: 2px solid var(--green-400);
-      background: var(--green-50);
-    }
-    .retailer-item.unavail { opacity: 0.4; }
-
-    .retailer-name {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--gray-500);
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-      margin-bottom: 4px;
-    }
-    .retailer-item.best .retailer-name { color: var(--green-600); }
-
-    .retailer-price {
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--gray-900);
-    }
-    .retailer-item.best .retailer-price { color: var(--green-600); }
-    .retailer-na { font-size: 12px; color: var(--gray-500); }
-
-    .best-label {
-      font-size: 10px;
-      font-weight: 700;
-      color: var(--green-600);
-      margin-top: 2px;
-    }
-
-    /* ── States ── */
-    .state-box {
-      text-align: center;
-      padding: 4rem 1rem;
-      color: var(--gray-500);
-    }
-    .state-box svg { width: 40px; height: 40px; margin-bottom: 12px; opacity: 0.4; }
-    .state-box p { font-size: 14px; }
-    .state-box strong { display: block; font-size: 16px; color: var(--gray-700); margin-bottom: 4px; }
-
-    /* Spinner */
-    .spinner {
-      width: 32px; height: 32px;
-      border: 3px solid var(--gray-200);
-      border-top-color: var(--green-400);
-      border-radius: 50%;
-      animation: spin 0.75s linear infinite;
-      margin: 0 auto 12px;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ── Info banner ── */
-    .info-banner {
-      background: var(--amber-50);
-      border: 1px solid #FAC775;
-      border-radius: var(--radius-md);
-      padding: 10px 14px;
-      font-size: 13px;
-      color: var(--amber-400);
-      margin-bottom: 1.2rem;
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
-    }
-    .info-banner svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px; fill: currentColor; }
-    .info-banner.hidden { display: none; }
-
-    /* ── Retailer legend ── */
-    .legend {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      font-size: 12px;
-      color: var(--gray-500);
-      margin-bottom: 1rem;
-    }
-    .legend-item { display: flex; align-items: center; gap: 5px; }
-    .legend-dot {
-      width: 10px; height: 10px; border-radius: 50%;
-    }
-    .legend-dot.green { background: var(--green-400); }
-    .legend-dot.gray  { border: 1px solid var(--gray-300); }
-
-    /* ── Footer ── */
-    footer {
-      text-align: center;
-      font-size: 12px;
-      color: var(--gray-500);
-      padding: 1.5rem 1rem;
-      border-top: 1px solid var(--gray-100);
-      margin-top: 2rem;
-    }
-    footer a { color: var(--green-400); text-decoration: none; }
-    footer a:hover { text-decoration: underline; }
-
-    /* ── Responsive ── */
-    @media (max-width: 500px) {
-      .topbar-inner { height: 52px; gap: 8px; }
-      .logo-name { display: none; }
-      .hero h1 { font-size: 22px; }
-      .retailers-grid { grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); }
-      .last-updated { display: none !important; }
-    }
+    html{scroll-behavior:smooth}
+    body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--gray-50);color:var(--gray-900);min-height:100vh;font-size:15px;line-height:1.5}
+    .topbar{background:var(--white);border-bottom:1px solid var(--gray-100);position:sticky;top:0;z-index:100}
+    .topbar-inner{max-width:900px;margin:0 auto;padding:0 1rem;display:flex;align-items:center;gap:1rem;height:56px}
+    .logo{display:flex;align-items:center;gap:8px;text-decoration:none;flex-shrink:0}
+    .logo-mark{width:30px;height:30px;background:var(--green-400);border-radius:8px;display:flex;align-items:center;justify-content:center}
+    .logo-mark svg{width:17px;height:17px}
+    .logo-name{font-size:18px;font-weight:700;color:var(--gray-900);letter-spacing:-0.4px}
+    .logo-name span{color:var(--green-400)}
+    .topbar-search{flex:1;position:relative}
+    .topbar-search input{width:100%;height:36px;padding:0 40px 0 14px;border:1px solid var(--gray-300);border-radius:var(--radius-md);font-size:14px;background:var(--gray-50);color:var(--gray-900);outline:none;transition:border-color 0.15s}
+    .topbar-search input:focus{border-color:var(--green-400);background:var(--white)}
+    .topbar-search input::placeholder{color:var(--gray-500)}
+    .topbar-search button{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:4px;color:var(--gray-500);display:flex;align-items:center}
+    .topbar-search button:hover{color:var(--green-400)}
+    .autocomplete-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--white);border:1px solid var(--gray-300);border-radius:var(--radius-md);box-shadow:0 6px 20px rgba(0,0,0,0.12);z-index:200;max-height:340px;overflow-y:auto;display:none}
+    .autocomplete-dropdown.open{display:block}
+    .ac-item{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;cursor:pointer;gap:10px;transition:background 0.1s}
+    .ac-item:hover,.ac-item.focused{background:var(--green-50)}
+    .ac-item-left{display:flex;flex-direction:column;min-width:0}
+    .ac-item-name{font-size:13px;font-weight:600;color:var(--gray-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .ac-item-name mark{background:none;color:var(--green-600);font-weight:700}
+    .ac-item-unit{font-size:11px;color:var(--gray-500);margin-top:1px}
+    .ac-item-right{display:flex;flex-direction:column;align-items:flex-end;flex-shrink:0}
+    .ac-best-price{font-size:13px;font-weight:700;color:var(--green-600);white-space:nowrap}
+    .ac-best-retailer{font-size:10px;color:var(--gray-500);white-space:nowrap}
+    .live-badge{font-size:11px;font-weight:700;color:var(--green-600);background:var(--green-50);border:1px solid var(--green-200);border-radius:999px;padding:3px 10px;white-space:nowrap;display:flex;align-items:center;gap:5px}
+    .live-dot{width:7px;height:7px;border-radius:50%;background:var(--green-400);animation:pulse 2s infinite}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.85)}}
+    .page{max-width:900px;margin:0 auto;padding:1.25rem 1rem 3rem}
+    .hero{text-align:center;padding:2rem 1rem 1.5rem}
+    .hero h1{font-size:28px;font-weight:800;letter-spacing:-0.6px;margin-bottom:6px;color:var(--gray-900)}
+    .hero h1 em{font-style:normal;color:var(--green-400)}
+    .hero p{font-size:14px;color:var(--gray-500)}
+    .search-prompt{background:var(--white);border:2px dashed var(--gray-200);border-radius:var(--radius-lg);padding:2.5rem 1.5rem;text-align:center;margin-bottom:1.5rem}
+    .search-prompt-icon{font-size:36px;margin-bottom:12px}
+    .search-prompt h3{font-size:16px;font-weight:700;color:var(--gray-700);margin-bottom:6px}
+    .search-prompt p{font-size:13px;color:var(--gray-500);margin-bottom:16px}
+    .quick-searches{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+    .quick-chip{padding:6px 14px;font-size:13px;border:1px solid var(--green-200);border-radius:999px;cursor:pointer;background:var(--green-50);color:var(--green-600);font-weight:500;transition:all .12s}
+    .quick-chip:hover{background:var(--green-400);color:var(--white);border-color:var(--green-400)}
+    .fetch-banner{background:var(--blue-50);border:1px solid #BFDBFE;border-radius:var(--radius-md);padding:12px 16px;font-size:13px;color:#1D4ED8;margin-bottom:1rem;display:none;align-items:flex-start;gap:10px}
+    .fetch-banner.visible{display:flex}
+    .fetch-banner-text{flex:1}
+    .fetch-banner strong{display:block;font-weight:700;margin-bottom:3px}
+    .retailer-progress{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+    .rp-chip{font-size:11px;font-weight:600;padding:3px 10px;border-radius:999px;border:1px solid #BFDBFE;background:var(--white);color:#3B82F6;display:flex;align-items:center;gap:4px;transition:all .3s}
+    .rp-chip.loading{background:#EFF6FF;border-color:#93C5FD}
+    .rp-chip.done{background:var(--green-50);border-color:var(--green-200);color:var(--green-600)}
+    .rp-chip.failed{background:var(--red-50);border-color:#FCA5A5;color:var(--red-400)}
+    .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem}
+    .chip{padding:5px 14px;font-size:13px;border:1px solid var(--gray-300);border-radius:999px;cursor:pointer;background:var(--white);color:var(--gray-700);font-weight:500;transition:all .12s;user-select:none}
+    .chip:hover{border-color:var(--green-400);color:var(--green-600)}
+    .chip.active{background:var(--green-50);border-color:var(--green-400);color:var(--green-600)}
+    .sort-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;gap:8px;flex-wrap:wrap}
+    .results-count{font-size:13px;color:var(--gray-500)}
+    .results-count strong{color:var(--gray-900)}
+    .sort-row select{font-size:13px;padding:5px 10px;border:1px solid var(--gray-300);border-radius:var(--radius-sm);background:var(--white);color:var(--gray-700);outline:none;cursor:pointer}
+    .sort-row select:focus{border-color:var(--green-400)}
+    .product-card{background:var(--white);border-radius:var(--radius-lg);border:1px solid var(--gray-100);padding:1rem 1.2rem;margin-bottom:10px;box-shadow:var(--shadow-card);transition:box-shadow .15s}
+    .product-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.09)}
+    .card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;gap:10px}
+    .card-title{font-size:15px;font-weight:600;color:var(--gray-900)}
+    .card-unit{font-size:12px;color:var(--gray-500);margin-top:2px}
+    .card-badges{display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
+    .badge{font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px}
+    .badge-save{background:var(--green-50);color:var(--green-600)}
+    .badge-cat{background:var(--gray-100);color:var(--gray-700)}
+    .badge-live{background:var(--blue-50);color:var(--blue-400)}
+    .retailers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:7px}
+    .retailer-item{border:1px solid var(--gray-100);border-radius:var(--radius-md);padding:9px 11px;position:relative}
+    .retailer-item.best{border:2px solid var(--green-400);background:var(--green-50)}
+    .retailer-item.unavail{opacity:.4}
+    .retailer-name{font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+    .retailer-item.best .retailer-name{color:var(--green-600)}
+    .retailer-price{font-size:16px;font-weight:700;color:var(--gray-900)}
+    .retailer-item.best .retailer-price{color:var(--green-600)}
+    .retailer-na{font-size:12px;color:var(--gray-500)}
+    .best-label{font-size:10px;font-weight:700;color:var(--green-600);margin-top:2px}
+    .retailer-link{font-size:10px;color:var(--green-600);text-decoration:none;display:block;margin-top:3px;opacity:.8}
+    .retailer-link:hover{opacity:1;text-decoration:underline}
+    .state-box{text-align:center;padding:4rem 1rem;color:var(--gray-500)}
+    .state-box svg{width:40px;height:40px;margin-bottom:12px;opacity:.4}
+    .state-box p{font-size:14px}
+    .state-box strong{display:block;font-size:16px;color:var(--gray-700);margin-bottom:4px}
+    .spinner{width:32px;height:32px;border:3px solid var(--gray-200);border-top-color:var(--green-400);border-radius:50%;animation:spin .75s linear infinite;margin:0 auto 12px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--gray-500);margin-bottom:1rem}
+    .legend-item{display:flex;align-items:center;gap:5px}
+    .legend-dot{width:10px;height:10px;border-radius:50%}
+    .legend-dot.green{background:var(--green-400)}
+    .legend-dot.gray{border:1px solid var(--gray-300)}
+    .error-banner{background:var(--red-50);border:1px solid #FCA5A5;border-radius:var(--radius-md);padding:10px 14px;font-size:13px;color:var(--red-400);margin-bottom:1rem;display:none}
+    .error-banner.visible{display:block}
+    .cache-notice{font-size:12px;color:var(--gray-500);display:flex;align-items:center;gap:6px;margin-bottom:.75rem}
+    .cache-notice button{font-size:12px;color:var(--green-600);background:none;border:none;cursor:pointer;text-decoration:underline;padding:0}
+    footer{text-align:center;font-size:12px;color:var(--gray-500);padding:1.5rem 1rem;border-top:1px solid var(--gray-100);margin-top:2rem}
+    footer a{color:var(--green-400);text-decoration:none}
+    footer a:hover{text-decoration:underline}
+    @media(max-width:500px){.topbar-inner{height:52px;gap:8px}.logo-name{display:none}.hero h1{font-size:22px}.retailers-grid{grid-template-columns:repeat(auto-fill,minmax(105px,1fr))}}
   </style>
 </head>
 <body>
-
-  <!-- ── Top navigation bar ── -->
   <nav class="topbar">
     <div class="topbar-inner">
       <a class="logo" href="#">
         <div class="logo-mark">
-          <!-- Cart icon -->
           <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
             <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
@@ -446,57 +130,64 @@
         </div>
         <span class="logo-name">Bei<span>Sawa</span></span>
       </a>
-
       <div class="topbar-search">
-        <input type="search" id="searchInput" placeholder='Search e.g. "sugar", "milk", "unga"...' autocomplete="off" />
-        <button onclick="applyFilters()" aria-label="Search">
+        <input type="search" id="searchInput" placeholder='Search e.g. "sugar", "milk", "unga"…' autocomplete="off" />
+        <button onclick="handleSearch()" aria-label="Search">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
             <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
           </svg>
         </button>
         <div class="autocomplete-dropdown" id="acDropdown"></div>
       </div>
-
-      <span class="last-updated" id="lastUpdated"></span>
+      <div class="live-badge" id="liveBadge" style="display:none">
+        <div class="live-dot"></div> Live
+      </div>
     </div>
   </nav>
 
-  <!-- ── Main page ── -->
   <div class="page">
-
-    <!-- Hero -->
     <div class="hero">
       <h1>Save money on every shop.<br><em>Compare prices</em> in seconds.</h1>
-      <p>Prices from Naivas, Carrefour, Quickmart, Chandarana &amp; Eastmatt — updated daily.</p>
+      <p>Real-time prices from Naivas, Carrefour, Quickmart, Chandarana &amp; Eastmatt — fetched live.</p>
     </div>
 
-    <!-- Notice banner (hidden once real data loads) -->
-    <div class="info-banner" id="demoBanner">
-      <svg viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11H9v2h2V7zm0 4H9v4h2v-4z"/></svg>
-      <span>
-        <strong style="display:inline; font-weight:700;">Demo mode:</strong>
-        showing sample data. Connect your Google Sheet to display live prices
-        (see the setup guide in the README).
-      </span>
+    <div class="fetch-banner" id="fetchBanner">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      <div class="fetch-banner-text">
+        <strong id="fetchTitle">Fetching live prices…</strong>
+        <span id="fetchSubtitle">Searching retailer websites for real-time prices</span>
+        <div class="retailer-progress" id="retailerProgress"></div>
+      </div>
     </div>
 
-    <!-- Category filter chips -->
-    <div class="filters" id="filterChips">
-      <div class="chip active" onclick="setCategory(this,'all')">All items</div>
-      <div class="chip" onclick="setCategory(this,'grains')">Grains &amp; Flour</div>
-      <div class="chip" onclick="setCategory(this,'dairy')">Dairy &amp; Eggs</div>
-      <div class="chip" onclick="setCategory(this,'oil')">Cooking Oil</div>
-      <div class="chip" onclick="setCategory(this,'sugar')">Sugar &amp; Salt</div>
-      <div class="chip" onclick="setCategory(this,'beverages')">Beverages</div>
-      <div class="chip" onclick="setCategory(this,'meat')">Meat &amp; Fish</div>
-      <div class="chip" onclick="setCategory(this,'household')">Household</div>
+    <div class="error-banner" id="errorBanner"></div>
+
+    <div id="searchPrompt" class="search-prompt">
+      <div class="search-prompt-icon">🛒</div>
+      <h3>Search for any grocery product</h3>
+      <p>Type a product name and we'll fetch real-time prices from all major Kenyan supermarkets.</p>
+      <div class="quick-searches">
+        <div class="quick-chip" onclick="quickSearch('Sugar')">Sugar</div>
+        <div class="quick-chip" onclick="quickSearch('Unga')">Unga</div>
+        <div class="quick-chip" onclick="quickSearch('Cooking Oil')">Cooking Oil</div>
+        <div class="quick-chip" onclick="quickSearch('Milk')">Milk</div>
+        <div class="quick-chip" onclick="quickSearch('Rice')">Rice</div>
+        <div class="quick-chip" onclick="quickSearch('Eggs')">Eggs</div>
+        <div class="quick-chip" onclick="quickSearch('Tea')">Tea</div>
+        <div class="quick-chip" onclick="quickSearch('Bread')">Bread</div>
+      </div>
     </div>
 
-    <!-- Sort + count row -->
-    <div class="sort-row">
+    <div class="filters" id="filterChips" style="display:none"></div>
+    <div class="cache-notice" id="cacheNotice" style="display:none">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      <span id="cacheTime"></span>
+      <button onclick="refreshSearch()">Refresh prices</button>
+    </div>
+    <div class="sort-row" id="sortRow" style="display:none">
       <div class="results-count" id="resultsCount"></div>
-      <div style="display:flex; align-items:center; gap:6px;">
-        <label for="sortSelect" style="font-size:13px; color:var(--gray-500);">Sort:</label>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <label for="sortSelect" style="font-size:13px;color:var(--gray-500)">Sort:</label>
         <select id="sortSelect" onchange="applyFilters()">
           <option value="savings">Most savings first</option>
           <option value="az">Name A–Z</option>
@@ -504,350 +195,291 @@
         </select>
       </div>
     </div>
-
-    <!-- Legend -->
-    <div class="legend">
-      <div class="legend-item">
-        <div class="legend-dot green"></div>
-        <span>Best price at that retailer</span>
-      </div>
-      <div class="legend-item">
-        <div class="legend-dot gray"></div>
-        <span>N/A = not available / not listed</span>
-      </div>
+    <div class="legend" id="legend" style="display:none">
+      <div class="legend-item"><div class="legend-dot green"></div><span>Best price</span></div>
+      <div class="legend-item"><div class="legend-dot gray"></div><span>Not listed / unavailable</span></div>
     </div>
-
-    <!-- Results container -->
     <div id="results"></div>
-
   </div>
 
-  <!-- Footer -->
   <footer>
-    <p>BeiSawa &mdash; Prices updated daily from official retailer websites &middot; All prices in <strong>KES</strong></p>
-    <p style="margin-top:4px;">
-      Built with Google Sheets &amp; GitHub Pages &middot;
-      <a href="https://github.com/YOUR_GITHUB_USERNAME/beisawa" target="_blank">View source on GitHub</a>
-    </p>
+    <p>BeiSawa &mdash; Live prices fetched from official retailer websites &middot; All prices in <strong>KES</strong></p>
+    <p style="margin-top:4px;">Powered by AI &middot; <a href="#">BeiSawa</a></p>
   </footer>
 
-
   <script>
-    /* ============================================================
-       DEMO DATA
-       This is used when APPS_SCRIPT_URL is not yet configured.
-       Once your Google Sheet is connected, this is replaced by
-       live data from your sheet automatically.
-       ============================================================ */
-    const DEMO_DATA = [
-      { name:"Dola Unga wa Ngano 2kg",    category:"grains",    unit:"2 kg pack",  Naivas:159, Carrefour:149, Quickmart:165, Chandarana:155, Eastmatt:null },
-      { name:"Pembe Maize Flour 2kg",     category:"grains",    unit:"2 kg pack",  Naivas:145, Carrefour:142, Quickmart:148, Chandarana:null, Eastmatt:150 },
-      { name:"Hostess Bread 400g",        category:"grains",    unit:"400 g loaf", Naivas:70,  Carrefour:68,  Quickmart:72,  Chandarana:70,   Eastmatt:null },
-      { name:"Brookside Whole Milk 500ml",category:"dairy",     unit:"500 ml",     Naivas:60,  Carrefour:58,  Quickmart:62,  Chandarana:60,   Eastmatt:63  },
-      { name:"KCC Butter 250g",           category:"dairy",     unit:"250 g",      Naivas:285, Carrefour:270, Quickmart:290, Chandarana:280,  Eastmatt:null },
-      { name:"Farmers Choice Eggs 6pk",   category:"dairy",     unit:"6 pack",     Naivas:85,  Carrefour:80,  Quickmart:88,  Chandarana:null, Eastmatt:87  },
-      { name:"Elianto Cooking Oil 2L",    category:"oil",       unit:"2 litre",    Naivas:480, Carrefour:465, Quickmart:490, Chandarana:475,  Eastmatt:488 },
-      { name:"Zesta Sunflower Oil 1L",    category:"oil",       unit:"1 litre",    Naivas:260, Carrefour:252, Quickmart:268, Chandarana:null, Eastmatt:264 },
-      { name:"Mumias Sugar 2kg",          category:"sugar",     unit:"2 kg pack",  Naivas:235, Carrefour:228, Quickmart:240, Chandarana:233,  Eastmatt:238 },
-      { name:"Kensalt Iodized Salt 1kg",  category:"sugar",     unit:"1 kg",       Naivas:45,  Carrefour:42,  Quickmart:47,  Chandarana:44,   Eastmatt:46  },
-      { name:"Ketepa Pride Tea 100g",     category:"beverages", unit:"100 g box",  Naivas:120, Carrefour:115, Quickmart:125, Chandarana:118,  Eastmatt:122 },
-      { name:"Nescafe Classic 100g",      category:"beverages", unit:"100 g jar",  Naivas:480, Carrefour:465, Quickmart:495, Chandarana:null, Eastmatt:488 },
-      { name:"Tusker Malt 500ml",         category:"beverages", unit:"500 ml can", Naivas:160, Carrefour:155, Quickmart:165, Chandarana:158,  Eastmatt:null },
-      { name:"Fresh Chicken (Whole) 1kg", category:"meat",      unit:"per kg",     Naivas:380, Carrefour:365, Quickmart:395, Chandarana:null, Eastmatt:null },
-      { name:"Tilapia Fillet 500g",       category:"meat",      unit:"500 g pack", Naivas:320, Carrefour:310, Quickmart:null,Chandarana:315,  Eastmatt:330 },
-      { name:"Ariel Washing Powder 1kg",  category:"household", unit:"1 kg pack",  Naivas:340, Carrefour:325, Quickmart:350, Chandarana:335,  Eastmatt:345 },
-      { name:"Omo Multi Active 1kg",      category:"household", unit:"1 kg pack",  Naivas:295, Carrefour:280, Quickmart:305, Chandarana:290,  Eastmatt:300 },
-      { name:"Colgate Toothpaste 75ml",   category:"household", unit:"75 ml tube", Naivas:120, Carrefour:112, Quickmart:125, Chandarana:118,  Eastmatt:122 },
+    const RETAILERS = [
+      { name:"Naivas",     searchUrl:"https://www.naivas.co.ke/search?q=" },
+      { name:"Carrefour",  searchUrl:"https://www.carrefour.ke/mafds/en/search?q=" },
+      { name:"Quickmart",  searchUrl:"https://www.quickmart.co.ke/search?q=" },
+      { name:"Chandarana", searchUrl:"https://www.chandarana.co.ke/?s=" },
+      { name:"Eastmatt",   searchUrl:"https://www.eastmatt.co.ke/?s=" },
     ];
+    const RETAILER_NAMES = RETAILERS.map(r => r.name);
 
-    const RETAILERS = ["Naivas","Carrefour","Quickmart","Chandarana","Eastmatt"];
-    /* Columns in the sheet that are NOT displayed as retailer prices */
-    const HIDDEN_COLS = ["name","category","unit","search_term","last_updated"];
-    let allProducts   = [];
-    let activeCategory = "all";
+    let allProducts = [], activeCategory = "all", currentQuery = "", acFocusedIndex = -1;
+    const priceCache = {};
 
-    /* ── Fetch data from Google Apps Script ── */
-    async function loadData() {
-      showLoading();
+    function quickSearch(term) {
+      document.getElementById("searchInput").value = term;
+      handleSearch();
+    }
 
-      /* Check if the user has configured the Apps Script URL */
-      const isConfigured = APPS_SCRIPT_URL && !APPS_SCRIPT_URL.includes("YOUR_DEPLOYMENT_ID");
+    function refreshSearch() {
+      if (!currentQuery) return;
+      delete priceCache[currentQuery.toLowerCase()];
+      fetchPrices(currentQuery);
+    }
 
-      if (!isConfigured) {
-        /* Use demo data */
-        allProducts = DEMO_DATA;
-        document.getElementById("demoBanner").classList.remove("hidden");
+    function handleSearch() {
+      const q = document.getElementById("searchInput").value.trim();
+      if (!q) return;
+      closeAutocomplete();
+      currentQuery = q;
+      const key = q.toLowerCase();
+      if (priceCache[key]) {
+        const { ts, products } = priceCache[key];
+        allProducts = products;
+        showCacheNotice(ts);
+        showResultsUI();
         applyFilters();
         return;
       }
+      fetchPrices(q);
+    }
+
+    async function fetchPrices(query) {
+      showFetchingUI(query);
+      const prompt = `You are a Kenyan supermarket price comparison assistant with web search capability.
+
+Search for "${query}" on each of these Kenyan retailer websites and return ALL matching products with current KES prices:
+- Naivas (naivas.co.ke)
+- Carrefour Kenya (carrefour.ke)  
+- Quickmart (quickmart.co.ke)
+- Chandarana (chandarana.co.ke)
+- Eastmatt (eastmatt.co.ke)
+
+For EACH distinct product variant (different sizes, brands), create one entry with prices from ALL retailers.
+Use null if a retailer doesn't carry that product.
+Include the direct product URL for each retailer that has it.
+Prices must be numbers in KES only.
+Category must be one of: grains, dairy, oil, sugar, meat, beverages, household, other.
+
+Respond ONLY with a valid JSON array — no markdown fences, no explanation, no preamble:
+[{"name":"Full Product Name 2kg","category":"sugar","unit":"2 kg pack","Naivas":250,"Naivas_url":"https://...","Carrefour":240,"Carrefour_url":"https://...","Quickmart":null,"Quickmart_url":null,"Chandarana":248,"Chandarana_url":"https://...","Eastmatt":255,"Eastmatt_url":"https://..."}]`;
 
       try {
-        const res  = await fetch(APPS_SCRIPT_URL);
-        const json = await res.json();
-
-        if (json.status === "ok" && Array.isArray(json.data)) {
-          allProducts = json.data;
-          document.getElementById("demoBanner").classList.add("hidden");
-
-          /* Show last-updated timestamp if provided */
-          if (json.lastUpdated) {
-            const lu = document.getElementById("lastUpdated");
-            lu.textContent = "Updated: " + json.lastUpdated;
-            lu.style.display = "inline";
-          }
-        } else {
-          throw new Error("Unexpected response format");
+        RETAILER_NAMES.forEach(r => setChipState(r, "loading"));
+        const resp = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "claude-sonnet-4-20250514",
+            max_tokens: 4000,
+            tools: [{ type: "web_search_20250305", name: "web_search" }],
+            messages: [{ role: "user", content: prompt }]
+          })
+        });
+        if (!resp.ok) {
+          const e = await resp.json().catch(() => ({}));
+          throw new Error(e.error?.message || "API error " + resp.status);
         }
-      } catch (err) {
-        console.error("Failed to load from Google Sheet:", err);
-        allProducts = DEMO_DATA; /* fall back to demo data */
-        document.getElementById("demoBanner").classList.remove("hidden");
-        document.getElementById("demoBanner").querySelector("span").innerHTML =
-          "<strong>Could not reach Google Sheet.</strong> Showing demo data. Check that your Apps Script is deployed as a public web app.";
+        const data = await resp.json();
+        RETAILER_NAMES.forEach(r => setChipState(r, "done"));
+
+        const textBlock = data.content.find(b => b.type === "text");
+        if (!textBlock) throw new Error("No text response");
+
+        let raw = textBlock.text.trim().replace(/^```json\s*/i,"").replace(/^```\s*/i,"").replace(/\s*```$/i,"").trim();
+        let products;
+        try { products = JSON.parse(raw); }
+        catch { const m = raw.match(/\[[\s\S]*\]/); if (!m) throw new Error("Cannot parse response"); products = JSON.parse(m[0]); }
+
+        if (!Array.isArray(products) || !products.length) throw new Error('No products found for "' + query + '"');
+
+        products = products.map(p => {
+          const c = { ...p };
+          RETAILER_NAMES.forEach(r => { const v = parseFloat(p[r]); c[r] = isNaN(v) ? null : v; });
+          return c;
+        });
+
+        allProducts = products;
+        priceCache[query.toLowerCase()] = { ts: new Date(), products };
+        hideFetchingUI();
+        hideCacheNotice();
+        showResultsUI();
+        applyFilters();
+      } catch(err) {
+        console.error(err);
+        RETAILER_NAMES.forEach(r => setChipState(r, "failed"));
+        hideFetchingUI();
+        showError("Could not fetch prices: " + err.message);
       }
-
-      applyFilters();
     }
 
-    /* ── Helpers ── */
-    function getPrices(p) {
-      return RETAILERS.map(r => ({ retailer: r, price: parseFloat(p[r]) || null }));
-    }
-
-    function getBest(prices) {
-      const valid = prices.filter(x => x.price !== null);
-      if (!valid.length) return null;
-      return valid.reduce((a, b) => a.price < b.price ? a : b);
-    }
-
-    function getSavings(prices) {
-      const vals = prices.filter(x => x.price !== null).map(x => x.price);
-      if (vals.length < 2) return 0;
-      return Math.max(...vals) - Math.min(...vals);
-    }
-
-    function getLowestPrice(prices) {
-      const vals = prices.filter(x => x.price !== null).map(x => x.price);
-      return vals.length ? Math.min(...vals) : Infinity;
-    }
-
-    /* ── Filter, sort, render ── */
-    function setCategory(el, cat) {
-      document.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
-      el.classList.add("active");
-      activeCategory = cat;
-      applyFilters();
-    }
-
-    function applyFilters() {
-      const q      = document.getElementById("searchInput").value.trim().toLowerCase();
-      const sort   = document.getElementById("sortSelect").value;
-
-      let list = allProducts.filter(p => {
-        const catMatch  = activeCategory === "all" || (p.category || "").toLowerCase() === activeCategory;
-        const nameMatch = !q || (p.name || "").toLowerCase().includes(q);
-        return catMatch && nameMatch;
-      });
-
-      /* Sort */
-      list.sort((a, b) => {
-        const pa = getPrices(a), pb = getPrices(b);
-        if (sort === "savings")   return getSavings(pb) - getSavings(pa);
-        if (sort === "az")        return (a.name || "").localeCompare(b.name || "");
-        if (sort === "price_asc") return getLowestPrice(pa) - getLowestPrice(pb);
-        return 0;
-      });
-
-      renderResults(list);
-    }
-
-    /* ── Render product cards ── */
-    function renderResults(list) {
-      const container = document.getElementById("results");
-      const countEl   = document.getElementById("resultsCount");
-
-      if (!list || !list.length) {
-        countEl.innerHTML = "";
-        container.innerHTML = `
-          <div class="state-box">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
-            </svg>
-            <p><strong>No products found</strong>Try a different search term or category.</p>
-          </div>`;
-        return;
-      }
-
-      countEl.innerHTML = `Showing <strong>${list.length}</strong> product${list.length !== 1 ? "s" : ""} &middot; Prices in <strong>KES</strong>`;
-
-      container.innerHTML = list.map(p => {
-        const prices   = getPrices(p);
-        const best     = getBest(prices);
-        const savings  = getSavings(prices);
-        const catLabel = (p.category || "").replace(/_/g, " ");
-
-        const savingsBadge = savings > 0
-          ? `<span class="badge badge-save">Save up to KES ${Math.round(savings)}</span>`
-          : "";
-        const catBadge = catLabel
-          ? `<span class="badge badge-cat">${catLabel}</span>`
-          : "";
-
-        const retailerCols = prices.map(({ retailer, price }) => {
-          const isBest   = best && retailer === best.retailer;
-          const cls      = price === null ? "retailer-item unavail"
-                         : isBest        ? "retailer-item best"
-                         :                 "retailer-item";
-          const priceHtml = price !== null
-            ? `<div class="retailer-price">KES ${price.toLocaleString()}</div>${isBest ? '<div class="best-label">Best price</div>' : ""}`
-            : `<div class="retailer-na">Not listed</div>`;
-
-          return `
-            <div class="${cls}">
-              <div class="retailer-name">${retailer}</div>
-              ${priceHtml}
-            </div>`;
-        }).join("");
-
-        return `
-          <div class="product-card">
-            <div class="card-header">
-              <div>
-                <div class="card-title">${escHtml(p.name || "")}</div>
-                <div class="card-unit">${escHtml(p.unit || "")}</div>
-              </div>
-              <div class="card-badges">${savingsBadge}${catBadge}</div>
-            </div>
-            <div class="retailers-grid">${retailerCols}</div>
-          </div>`;
-      }).join("");
-    }
-
-    /* ── Loading state ── */
-    function showLoading() {
-      document.getElementById("results").innerHTML = `
-        <div class="state-box">
-          <div class="spinner"></div>
-          <p>Loading prices…</p>
-        </div>`;
+    function showFetchingUI(query) {
+      document.getElementById("searchPrompt").style.display = "none";
+      document.getElementById("errorBanner").classList.remove("visible");
+      document.getElementById("fetchTitle").textContent = 'Searching for "' + query + '" prices…';
+      document.getElementById("fetchSubtitle").textContent = "Checking all 5 retailer websites in real-time";
+      document.getElementById("retailerProgress").innerHTML = RETAILER_NAMES.map(r =>
+        `<div class="rp-chip" id="chip-${r}"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg>${r}</div>`
+      ).join("");
+      document.getElementById("fetchBanner").classList.add("visible");
+      document.getElementById("sortRow").style.display = "none";
+      document.getElementById("legend").style.display = "none";
+      document.getElementById("filterChips").style.display = "none";
+      document.getElementById("cacheNotice").style.display = "none";
+      document.getElementById("results").innerHTML = `<div class="state-box"><div class="spinner"></div><p>Fetching live prices from all retailers…</p></div>`;
       document.getElementById("resultsCount").innerHTML = "";
     }
 
-    /* ── Utility ── */
-    function escHtml(str) {
-      return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    function setChipState(r, state) {
+      const chip = document.getElementById("chip-" + r);
+      if (!chip) return;
+      chip.className = "rp-chip " + state;
+      const icons = {
+        loading: `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>`,
+        done:    `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`,
+        failed:  `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+      };
+      chip.innerHTML = (icons[state] || "") + r;
     }
 
-    /* ── Autocomplete ── */
-    let acFocusedIndex = -1;
+    function hideFetchingUI() { document.getElementById("fetchBanner").classList.remove("visible"); }
+    function showResultsUI() {
+      document.getElementById("searchPrompt").style.display = "none";
+      document.getElementById("sortRow").style.display = "flex";
+      document.getElementById("legend").style.display = "flex";
+      document.getElementById("filterChips").style.display = "flex";
+      document.getElementById("liveBadge").style.display = "flex";
+    }
+    function showError(msg) {
+      const b = document.getElementById("errorBanner");
+      b.textContent = msg; b.classList.add("visible");
+      document.getElementById("results").innerHTML = `<div class="state-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><p><strong>Something went wrong</strong>${msg}</p></div>`;
+    }
+    function showCacheNotice(ts) {
+      document.getElementById("cacheTime").textContent = "Prices from " + ts.toLocaleTimeString("en-KE",{hour:"2-digit",minute:"2-digit"}) + ".";
+      document.getElementById("cacheNotice").style.display = "flex";
+    }
+    function hideCacheNotice() { document.getElementById("cacheNotice").style.display = "none"; }
 
-    function highlightMatch(text, query) {
-      if (!query) return escHtml(text);
-      const idx = text.toLowerCase().indexOf(query.toLowerCase());
-      if (idx === -1) return escHtml(text);
-      return escHtml(text.slice(0, idx))
-           + '<mark>' + escHtml(text.slice(idx, idx + query.length)) + '</mark>'
-           + escHtml(text.slice(idx + query.length));
+    function setCategory(el, cat) {
+      document.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
+      el.classList.add("active"); activeCategory = cat; applyFilters();
+    }
+
+    function applyFilters() {
+      rebuildCategoryChips();
+      const sort = document.getElementById("sortSelect").value;
+      let list = allProducts.filter(p => activeCategory === "all" || (p.category||"").toLowerCase() === activeCategory);
+      list.sort((a,b) => {
+        const pa=getPrices(a), pb=getPrices(b);
+        if (sort==="savings") return getSavings(pb)-getSavings(pa);
+        if (sort==="az") return (a.name||"").localeCompare(b.name||"");
+        if (sort==="price_asc") return getLowestPrice(pa)-getLowestPrice(pb);
+        return 0;
+      });
+      renderResults(list);
+    }
+
+    function rebuildCategoryChips() {
+      const cats = [...new Set(allProducts.map(p=>(p.category||"").toLowerCase()).filter(Boolean))];
+      const chips = document.getElementById("filterChips");
+      chips.innerHTML = `<div class="chip ${activeCategory==="all"?"active":""}" data-cat="all" onclick="setCategory(this,'all')">All results</div>`;
+      cats.forEach(cat => {
+        const label = cat.replace(/_/g," ").replace(/\b\w/g,l=>l.toUpperCase());
+        chips.innerHTML += `<div class="chip ${activeCategory===cat?"active":""}" data-cat="${cat}" onclick="setCategory(this,'${cat}')">${label}</div>`;
+      });
+    }
+
+    function renderResults(list) {
+      const container = document.getElementById("results");
+      const countEl = document.getElementById("resultsCount");
+      if (!list || !list.length) {
+        countEl.innerHTML = "";
+        container.innerHTML = `<div class="state-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><p><strong>No products found</strong>Try a different search term or category.</p></div>`;
+        return;
+      }
+      countEl.innerHTML = `Showing <strong>${list.length}</strong> product${list.length!==1?"s":""} &middot; Prices in <strong>KES</strong>`;
+      container.innerHTML = list.map(p => {
+        const prices = getPrices(p), best = getBest(prices), savings = getSavings(prices);
+        const catLabel = (p.category||"").replace(/_/g," ");
+        const savingsBadge = savings>0 ? `<span class="badge badge-save">Save up to KES ${Math.round(savings)}</span>` : "";
+        const catBadge = catLabel ? `<span class="badge badge-cat">${escHtml(catLabel)}</span>` : "";
+        const retailerCols = RETAILERS.map(({name}) => {
+          const entry = prices.find(x=>x.retailer===name), price = entry?entry.price:null;
+          const isBest = best && name===best.retailer;
+          const cls = price===null?"retailer-item unavail":isBest?"retailer-item best":"retailer-item";
+          const link = p[name+"_url"];
+          const linkHtml = link ? `<a class="retailer-link" href="${escHtml(link)}" target="_blank" rel="noopener">View →</a>` : "";
+          const priceHtml = price!==null
+            ? `<div class="retailer-price">KES ${price.toLocaleString()}</div>${isBest?'<div class="best-label">Best price</div>':""}${linkHtml}`
+            : `<div class="retailer-na">Not listed</div>`;
+          return `<div class="${cls}"><div class="retailer-name">${name}</div>${priceHtml}</div>`;
+        }).join("");
+        return `<div class="product-card"><div class="card-header"><div><div class="card-title">${escHtml(p.name||"")}</div><div class="card-unit">${escHtml(p.unit||"")}</div></div><div class="card-badges">${savingsBadge}${catBadge}<span class="badge badge-live">Live</span></div></div><div class="retailers-grid">${retailerCols}</div></div>`;
+      }).join("");
+    }
+
+    function getPrices(p) { return RETAILER_NAMES.map(r=>({retailer:r,price:parseFloat(p[r])||null})); }
+    function getBest(prices) { const v=prices.filter(x=>x.price!==null); if(!v.length)return null; return v.reduce((a,b)=>a.price<b.price?a:b); }
+    function getSavings(prices) { const v=prices.filter(x=>x.price!==null).map(x=>x.price); if(v.length<2)return 0; return Math.max(...v)-Math.min(...v); }
+    function getLowestPrice(prices) { const v=prices.filter(x=>x.price!==null).map(x=>x.price); return v.length?Math.min(...v):Infinity; }
+
+    function highlightMatch(text, q) {
+      if (!q) return escHtml(text);
+      const idx = text.toLowerCase().indexOf(q.toLowerCase());
+      if (idx===-1) return escHtml(text);
+      return escHtml(text.slice(0,idx))+"<mark>"+escHtml(text.slice(idx,idx+q.length))+"</mark>"+escHtml(text.slice(idx+q.length));
     }
 
     function showAutocomplete(q) {
-      const dropdown = document.getElementById("acDropdown");
-      if (!q || q.length < 1) { closeAutocomplete(); return; }
-
+      const dd = document.getElementById("acDropdown");
+      if (!q || !allProducts.length) { closeAutocomplete(); return; }
       const lower = q.toLowerCase();
-      // Separate exact-start matches from contains matches for better ordering
-      const startMatches = allProducts.filter(p => (p.name || "").toLowerCase().startsWith(lower));
-      const containsMatches = allProducts.filter(p => {
-        const n = (p.name || "").toLowerCase();
-        return n.includes(lower) && !n.startsWith(lower);
-      });
-      const matches = [...startMatches, ...containsMatches].slice(0, 8);
-
+      const startM = allProducts.filter(p=>(p.name||"").toLowerCase().startsWith(lower));
+      const contM  = allProducts.filter(p=>{ const n=(p.name||"").toLowerCase(); return n.includes(lower)&&!n.startsWith(lower); });
+      const matches = [...startM,...contM].slice(0,8);
       if (!matches.length) { closeAutocomplete(); return; }
-
       acFocusedIndex = -1;
-      const total = allProducts.filter(p => (p.name || "").toLowerCase().includes(lower)).length;
-
-      dropdown.innerHTML = matches.map((p, i) => {
-        const prices = getPrices(p);
-        const best   = getBest(prices);
+      dd.innerHTML = matches.map((p,i) => {
+        const best = getBest(getPrices(p));
         const priceHtml = best
-          ? `<div class="ac-best-price">KES ${best.price.toLocaleString()}</div>
-             <div class="ac-best-retailer">at ${best.retailer}</div>`
-          : `<div class="ac-best-retailer" style="margin-top:2px">No price listed</div>`;
-
-        return `
-          <div class="ac-item" data-index="${i}" onmousedown="selectSuggestion(${JSON.stringify(p.name)})">
-            <div class="ac-item-left">
-              <div class="ac-item-name">${highlightMatch(p.name || '', q)}</div>
-              <div class="ac-item-unit">${escHtml(p.unit || '')}</div>
-            </div>
-            <div class="ac-item-right">${priceHtml}</div>
-          </div>`;
-      }).join('');
-
-      if (total > matches.length) {
-        dropdown.innerHTML += `<div class="ac-see-all" onmousedown="selectAll()">See all ${total} results for "<strong>${escHtml(q)}</strong>"</div>`;
-      }
-
-      dropdown.classList.add("open");
+          ? `<div class="ac-best-price">KES ${best.price.toLocaleString()}</div><div class="ac-best-retailer">at ${best.retailer}</div>`
+          : `<div class="ac-best-retailer">No price listed</div>`;
+        return `<div class="ac-item" data-index="${i}" onmousedown="selectSuggestion(${JSON.stringify(p.name)})"><div class="ac-item-left"><div class="ac-item-name">${highlightMatch(p.name||"",q)}</div><div class="ac-item-unit">${escHtml(p.unit||"")}</div></div><div class="ac-item-right">${priceHtml}</div></div>`;
+      }).join("");
+      dd.classList.add("open");
     }
 
-    function closeAutocomplete() {
-      document.getElementById("acDropdown").classList.remove("open");
-      acFocusedIndex = -1;
-    }
-
+    function closeAutocomplete() { document.getElementById("acDropdown").classList.remove("open"); acFocusedIndex=-1; }
     function selectSuggestion(name) {
-      const input = document.getElementById("searchInput");
-      input.value = name;
-      closeAutocomplete();
-      applyFilters();
-      // Scroll results into view
-      setTimeout(() => document.getElementById("results").scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+      document.getElementById("searchInput").value = name;
+      closeAutocomplete(); applyFilters();
+      setTimeout(()=>document.getElementById("results").scrollIntoView({behavior:"smooth",block:"start"}),100);
     }
-
-    function selectAll() {
-      closeAutocomplete();
-      applyFilters();
-      setTimeout(() => document.getElementById("results").scrollIntoView({ behavior: "smooth", block: "start" }), 100);
-    }
-
-    function navigateAutocomplete(direction) {
+    function navigateAutocomplete(dir) {
       const items = document.querySelectorAll("#acDropdown .ac-item");
       if (!items.length) return;
-      items.forEach(i => i.classList.remove("focused"));
-      acFocusedIndex = (acFocusedIndex + direction + items.length) % items.length;
+      items.forEach(i=>i.classList.remove("focused"));
+      acFocusedIndex = (acFocusedIndex+dir+items.length)%items.length;
       items[acFocusedIndex].classList.add("focused");
     }
+    function escHtml(str) { return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
-    /* ── Event listeners ── */
-    document.getElementById("searchInput").addEventListener("input", e => {
-      showAutocomplete(e.target.value.trim());
-      applyFilters();
-    });
+    document.getElementById("searchInput").addEventListener("input", e => showAutocomplete(e.target.value.trim()));
     document.getElementById("searchInput").addEventListener("keydown", e => {
-      const dropdown = document.getElementById("acDropdown");
-      if (e.key === "ArrowDown") { e.preventDefault(); navigateAutocomplete(1); }
-      else if (e.key === "ArrowUp") { e.preventDefault(); navigateAutocomplete(-1); }
-      else if (e.key === "Enter") {
-        const focused = dropdown.querySelector(".ac-item.focused");
-        if (focused) { focused.dispatchEvent(new MouseEvent("mousedown")); }
-        else { closeAutocomplete(); applyFilters(); }
-      }
-      else if (e.key === "Escape") { closeAutocomplete(); }
+      const dd = document.getElementById("acDropdown");
+      if (e.key==="ArrowDown"){e.preventDefault();navigateAutocomplete(1);}
+      else if(e.key==="ArrowUp"){e.preventDefault();navigateAutocomplete(-1);}
+      else if(e.key==="Enter"){const f=dd.querySelector(".ac-item.focused");if(f)f.dispatchEvent(new MouseEvent("mousedown"));else handleSearch();}
+      else if(e.key==="Escape")closeAutocomplete();
     });
-    document.getElementById("searchInput").addEventListener("focus", e => {
-      if (e.target.value.trim()) showAutocomplete(e.target.value.trim());
-    });
-    document.getElementById("searchInput").addEventListener("blur", () => {
-      setTimeout(closeAutocomplete, 150);
-    });
+    document.getElementById("searchInput").addEventListener("focus", e=>{if(e.target.value.trim())showAutocomplete(e.target.value.trim());});
+    document.getElementById("searchInput").addEventListener("blur", ()=>setTimeout(closeAutocomplete,150));
     document.getElementById("sortSelect").onchange = applyFilters;
-
-    /* ── Boot ── */
-    loadData();
   </script>
-
 </body>
 </html>
