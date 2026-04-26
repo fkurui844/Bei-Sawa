@@ -532,27 +532,61 @@ Respond ONLY with a valid JSON array — no markdown fences, no explanation, no 
     try {
       RETAILER_NAMES.forEach(r => setChip(r, "loading"));
 
-      const resp = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 4000,
-          tools: [{ type: "web_search_20250305", name: "web_search" }],
-          messages: [{ role: "user", content: prompt }]
-        })
-      });
+      // Multi-turn conversation to handle tool use (web_search)
+      const messages = [{ role: "user", content: prompt }];
+      let textBlock = null;
 
-      if (!resp.ok) {
-        const e = await resp.json().catch(() => ({}));
-        throw new Error(e.error?.message || "API error " + resp.status);
+      for (let turn = 0; turn < 8; turn++) {
+        const resp = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": "",
+            "anthropic-version": "2023-06-01",
+            "anthropic-dangerous-direct-browser-access": "true"
+          },
+          body: JSON.stringify({
+            model: "claude-sonnet-4-20250514",
+            max_tokens: 4000,
+            tools: [{ type: "web_search_20250305", name: "web_search" }],
+            messages
+          })
+        });
+
+        if (!resp.ok) {
+          const e = await resp.json().catch(() => ({}));
+          throw new Error(e.error?.message || "API error " + resp.status);
+        }
+
+        const data = await resp.json();
+
+        // Add assistant turn to history
+        messages.push({ role: "assistant", content: data.content });
+
+        // Check if we have a final text response
+        textBlock = data.content.find(b => b.type === "text");
+
+        if (data.stop_reason === "end_turn" && textBlock) break;
+
+        // Handle tool_use: collect results and continue
+        if (data.stop_reason === "tool_use") {
+          const toolResults = data.content
+            .filter(b => b.type === "tool_use")
+            .map(b => ({
+              type: "tool_result",
+              tool_use_id: b.id,
+              content: b.type === "tool_use" ? (b.content || "") : ""
+            }));
+          if (toolResults.length) {
+            messages.push({ role: "user", content: toolResults });
+          }
+        } else {
+          break; // unexpected stop reason
+        }
       }
 
-      const data = await resp.json();
       RETAILER_NAMES.forEach(r => setChip(r, "done"));
 
-      // Find the text block (may come after tool_use blocks)
-      const textBlock = data.content.find(b => b.type === "text");
       if (!textBlock) throw new Error("No text response from AI");
 
       let raw = textBlock.text.trim()
