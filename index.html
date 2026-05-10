@@ -1,12 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Beisawa — Compare Grocery Prices in Kenya</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<style>
-  :root {
+import { useState, useCallback } from "react";
+
+const STORES = [
+  { name: "Naivas",     emoji: "🛒" },
+  { name: "Carrefour",  emoji: "🏬" },
+  { name: "Quickmart",  emoji: "⚡" },
+  { name: "Chandarana", emoji: "🧺" },
+  { name: "Eastmatt",   emoji: "🏪" },
+];
+
+const SUGGESTIONS = [
+  { label: "🌾 Jogoo Unga 2kg",    query: "2kg Jogoo Unga flour" },
+  { label: "🥛 Brookside Milk 500ml", query: "Brookside fresh milk 500ml" },
+  { label: "🧺 Omo 1kg",           query: "Omo washing powder 1kg" },
+  { label: "🍜 Indomie noodles",   query: "Indomie instant noodles" },
+  { label: "☕ Ketepa Tea",         query: "Ketepa tea 100 bags" },
+  { label: "🫙 Raha Oil 2L",        query: "Raha cooking oil 2 litres" },
+];
+
+const css = `
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  .bsw-root {
     --bg: #f0ede6;
     --card: #faf8f4;
     --text: #1a1a14;
@@ -16,43 +30,24 @@
     --green-light: #e8f4e8;
     --accent: #c8491a;
     --accent-light: #fdf0eb;
-    --gold: #b8962e;
     --shadow: 0 2px 20px rgba(0,0,0,0.08);
     --radius: 14px;
-  }
-
-  * { margin:0; padding:0; box-sizing:border-box; }
-
-  body {
     background: var(--bg);
     color: var(--text);
     font-family: 'DM Sans', sans-serif;
     min-height: 100vh;
+    padding-bottom: 60px;
   }
 
-  /* Grain texture overlay */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    opacity: 0.03;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    background-size: 200px;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  header {
+  .bsw-header {
     text-align: center;
-    padding: 56px 20px 40px;
-    position: relative;
-    z-index: 1;
+    padding: 52px 20px 36px;
   }
 
-  .logo-badge {
+  .bsw-badge {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     background: var(--green);
     color: #fff;
     font-size: 11px;
@@ -64,486 +59,351 @@
     margin-bottom: 20px;
   }
 
-  h1 {
+  .bsw-h1 {
     font-family: 'Playfair Display', serif;
-    font-size: clamp(36px, 6vw, 64px);
+    font-size: clamp(28px, 5vw, 56px);
     font-weight: 900;
-    line-height: 1.05;
+    line-height: 1.08;
     letter-spacing: -1px;
-    color: var(--text);
     margin-bottom: 12px;
   }
 
-  h1 em {
+  .bsw-h1 em {
     font-style: italic;
     color: var(--green);
   }
 
-  .subtitle {
-    font-size: 15px;
+  .bsw-subtitle {
+    font-size: 14px;
     color: var(--muted);
-    font-weight: 400;
-    max-width: 480px;
+    max-width: 460px;
     margin: 0 auto;
     line-height: 1.6;
   }
 
-  /* Search section */
-  .search-wrap {
-    max-width: 640px;
-    margin: 0 auto 16px;
-    padding: 0 20px;
-    position: relative;
-    z-index: 1;
+  .bsw-search-wrap {
+    max-width: 620px;
+    margin: 0 auto 14px;
+    padding: 0 16px;
   }
 
-  .search-box {
+  .bsw-search-box {
     display: flex;
     background: var(--card);
     border: 1.5px solid var(--border);
     border-radius: 50px;
     overflow: hidden;
-    box-shadow: var(--shadow), 0 0 0 0 rgba(45,106,45,0);
-    transition: box-shadow 0.3s, border-color 0.3s;
+    box-shadow: var(--shadow);
+    transition: border-color 0.25s, box-shadow 0.25s;
   }
 
-  .search-box:focus-within {
+  .bsw-search-box:focus-within {
     border-color: var(--green);
     box-shadow: var(--shadow), 0 0 0 4px rgba(45,106,45,0.12);
   }
 
-  .search-box input {
+  .bsw-input {
     flex: 1;
     border: none;
     background: transparent;
-    padding: 16px 22px;
+    padding: 15px 20px;
     font-family: 'DM Sans', sans-serif;
-    font-size: 15px;
+    font-size: 14px;
     color: var(--text);
     outline: none;
+    min-width: 0;
   }
 
-  .search-box input::placeholder { color: var(--muted); }
+  .bsw-input::placeholder { color: var(--muted); }
 
-  .search-btn {
+  .bsw-btn {
     background: var(--green);
     color: #fff;
     border: none;
-    padding: 12px 26px;
+    padding: 10px 22px;
     margin: 5px;
     border-radius: 40px;
     font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     cursor: pointer;
     transition: background 0.2s, transform 0.1s;
+    white-space: nowrap;
     display: flex;
     align-items: center;
-    gap: 7px;
-    white-space: nowrap;
+    gap: 6px;
   }
 
-  .search-btn:hover { background: #1e4f1e; }
-  .search-btn:active { transform: scale(0.97); }
-  .search-btn:disabled { background: #9cbb9c; cursor: not-allowed; }
+  .bsw-btn:hover:not(:disabled) { background: #1e4f1e; }
+  .bsw-btn:active:not(:disabled) { transform: scale(0.97); }
+  .bsw-btn:disabled { background: #9cbb9c; cursor: not-allowed; }
 
-  .search-btn .spinner {
-    width: 14px; height: 14px;
-    border: 2px solid rgba(255,255,255,0.4);
-    border-top-color: #fff;
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    display: none;
-  }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .suggestions {
+  .bsw-suggestions {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
     justify-content: center;
-    padding: 0 20px;
-    position: relative;
-    z-index: 1;
+    padding: 0 16px;
+    max-width: 620px;
+    margin: 0 auto;
   }
 
-  .suggestion-pill {
+  .bsw-pill {
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: 20px;
-    padding: 6px 14px;
-    font-size: 13px;
+    padding: 6px 13px;
+    font-size: 12px;
     color: var(--muted);
     cursor: pointer;
     transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
   }
 
-  .suggestion-pill:hover {
+  .bsw-pill:hover {
     border-color: var(--green);
     color: var(--green);
     background: var(--green-light);
   }
 
-  /* Error */
-  .error-box {
-    max-width: 640px;
-    margin: 20px auto 0;
-    padding: 14px 18px;
+  .bsw-error {
+    max-width: 620px;
+    margin: 16px auto 0;
+    padding: 12px 16px;
     background: #fdf2f2;
     border: 1px solid #f0b8b8;
     border-radius: var(--radius);
     color: #b83232;
     font-size: 13px;
-    display: none;
   }
 
-  /* Results */
-  #results {
-    max-width: 840px;
-    margin: 40px auto 60px;
-    padding: 0 20px;
-    position: relative;
-    z-index: 1;
+  .bsw-results {
+    max-width: 820px;
+    margin: 36px auto 0;
+    padding: 0 16px;
   }
 
-  .results-header {
+  .bsw-results-header {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 8px;
   }
 
-  .results-title {
+  .bsw-results-title {
     font-family: 'Playfair Display', serif;
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 700;
   }
 
-  .results-title span { color: var(--green); }
+  .bsw-results-title span { color: var(--green); }
 
-  .results-meta {
-    font-size: 12px;
+  .bsw-results-meta {
+    font-size: 11px;
     color: var(--muted);
     font-style: italic;
   }
 
-  /* Best deal banner */
-  .best-deal-banner {
+  .bsw-best {
     background: var(--green);
     color: #fff;
     border-radius: var(--radius);
-    padding: 18px 24px;
-    margin-bottom: 16px;
+    padding: 16px 22px;
+    margin-bottom: 14px;
     display: flex;
     align-items: center;
-    gap: 16px;
-    animation: slideIn 0.4s cubic-bezier(0.22,1,0.36,1);
-  }
-
-  @keyframes slideIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
-
-  .best-deal-icon { font-size: 28px; }
-  .best-deal-label { font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; opacity: 0.75; margin-bottom: 2px; }
-  .best-deal-text { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; }
-
-  /* Store grid */
-  .stores-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
     gap: 14px;
-    margin-bottom: 24px;
+    animation: bswSlideIn 0.35s cubic-bezier(0.22,1,0.36,1);
   }
 
-  .store-card {
+  .bsw-best-icon { font-size: 26px; }
+  .bsw-best-label { font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; opacity: 0.75; margin-bottom: 2px; }
+  .bsw-best-text { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; }
+
+  .bsw-savings {
+    background: var(--accent-light);
+    border: 1px solid #f0cfc0;
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 500;
+    margin-bottom: 14px;
+  }
+
+  .bsw-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .bsw-card {
     background: var(--card);
     border: 1.5px solid var(--border);
     border-radius: var(--radius);
-    padding: 20px;
-    animation: slideIn 0.4s cubic-bezier(0.22,1,0.36,1) both;
-    transition: transform 0.2s, box-shadow 0.2s;
+    padding: 18px;
     position: relative;
     overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    animation: bswSlideIn 0.35s cubic-bezier(0.22,1,0.36,1) both;
   }
 
-  .store-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow);
-  }
+  .bsw-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
 
-  .store-card.cheapest {
+  .bsw-card.cheapest {
     border-color: var(--green);
     background: var(--green-light);
   }
 
-  .store-card.cheapest::after {
+  .bsw-card.cheapest::after {
     content: '✦ Cheapest';
     position: absolute;
-    top: 12px;
-    right: 12px;
+    top: 10px; right: 10px;
     background: var(--green);
     color: #fff;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 700;
     letter-spacing: 0.5px;
-    padding: 3px 9px;
+    padding: 3px 8px;
     border-radius: 20px;
   }
 
-  .store-card.priciest {
-    border-color: #e8d0c8;
-  }
-
-  .store-name {
-    font-size: 13px;
+  .bsw-store-name {
+    font-size: 12px;
     font-weight: 600;
     letter-spacing: 0.3px;
     color: var(--muted);
     margin-bottom: 10px;
     display: flex;
     align-items: center;
-    gap: 7px;
+    gap: 6px;
   }
 
-  .store-emoji { font-size: 18px; }
-
-  .store-price {
+  .bsw-price {
     font-family: 'Playfair Display', serif;
-    font-size: 28px;
+    font-size: 26px;
     font-weight: 700;
-    color: var(--text);
     line-height: 1;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
   }
 
-  .store-price .currency {
+  .bsw-currency {
     font-family: 'DM Sans', sans-serif;
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 600;
     vertical-align: super;
     margin-right: 2px;
     color: var(--muted);
   }
 
-  .store-availability {
-    font-size: 12px;
-    color: var(--muted);
-  }
+  .bsw-avail { font-size: 11px; color: var(--muted); }
+  .bsw-avail.na { color: #c0a080; font-style: italic; }
 
-  .store-availability.na { color: #c0a080; font-style: italic; }
+  .bsw-bar { height: 4px; background: var(--border); border-radius: 2px; margin-top: 12px; overflow: hidden; }
+  .bsw-bar-fill { height: 100%; background: var(--green); border-radius: 2px; transition: width 0.6s cubic-bezier(0.22,1,0.36,1); }
+  .bsw-card.priciest .bsw-bar-fill { background: var(--accent); }
 
-  .price-bar {
-    height: 4px;
-    background: var(--border);
-    border-radius: 2px;
-    margin-top: 14px;
-    overflow: hidden;
-  }
-
-  .price-bar-fill {
-    height: 100%;
-    background: var(--green);
-    border-radius: 2px;
-    transition: width 0.6s cubic-bezier(0.22,1,0.36,1);
-  }
-
-  .store-card.priciest .price-bar-fill { background: var(--accent); }
-
-  /* Savings row */
-  .savings-row {
-    background: var(--accent-light);
-    border: 1px solid #f0cfc0;
-    border-radius: var(--radius);
-    padding: 16px 20px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 14px;
-    color: var(--accent);
-    font-weight: 500;
-    margin-bottom: 16px;
-  }
-
-  .savings-row strong { font-weight: 700; }
-
-  /* Notes */
-  .ai-note {
-    font-size: 12px;
+  .bsw-note {
+    font-size: 11px;
     color: var(--muted);
     text-align: center;
     line-height: 1.7;
-    padding: 16px 20px;
+    padding: 14px 18px;
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: var(--radius);
   }
 
-  /* Empty state */
-  .empty-state {
+  .bsw-empty {
     text-align: center;
-    padding: 60px 20px;
+    padding: 50px 20px;
   }
 
-  .empty-icon { font-size: 52px; margin-bottom: 16px; }
+  .bsw-empty-icon { font-size: 48px; margin-bottom: 14px; }
+  .bsw-empty-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+  .bsw-empty-desc { color: var(--muted); font-size: 13px; }
 
-  .empty-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 22px;
-    font-weight: 700;
-    margin-bottom: 8px;
-  }
-
-  .empty-desc { color: var(--muted); font-size: 14px; }
-
-  /* Skeleton loading */
-  .skeleton-grid {
+  .bsw-skeleton-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-    gap: 14px;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 12px;
+    max-width: 820px;
+    margin: 36px auto 0;
+    padding: 0 16px;
   }
 
-  .skeleton-card {
+  .bsw-skel {
     background: var(--card);
     border: 1.5px solid var(--border);
     border-radius: var(--radius);
-    padding: 20px;
+    padding: 18px;
   }
 
-  .skeleton-line {
+  .bsw-skel-line {
     background: linear-gradient(90deg, var(--border) 25%, #e8e5dd 50%, var(--border) 75%);
     background-size: 200% 100%;
-    animation: shimmer 1.4s infinite;
+    animation: bswShimmer 1.4s infinite;
     border-radius: 4px;
-    height: 12px;
+    height: 11px;
     margin-bottom: 10px;
   }
 
-  .skeleton-line.tall { height: 32px; margin-bottom: 6px; }
-  .skeleton-line.short { width: 60%; }
+  .bsw-skel-line.tall { height: 30px; margin-bottom: 6px; }
+  .bsw-skel-line.short { width: 55%; }
 
-  @keyframes shimmer { to { background-position: -200% 0; } }
+  @keyframes bswShimmer { to { background-position: -200% 0; } }
+  @keyframes bswSlideIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
 
-  footer {
+  .bsw-footer {
     text-align: center;
-    padding: 30px 20px;
-    font-size: 12px;
+    padding: 28px 16px 0;
+    font-size: 11px;
     color: var(--muted);
+    line-height: 1.7;
+    max-width: 820px;
+    margin: 20px auto 0;
     border-top: 1px solid var(--border);
-    position: relative;
-    z-index: 1;
   }
-</style>
-</head>
-<body>
 
-<header>
-  <div class="logo-badge">🇰🇪 Kenya</div>
-  <h1>Save money on every shop.<br><em>Compare prices</em> in seconds.</h1>
-  <p class="subtitle">AI-estimated prices across Naivas, Carrefour, Quickmart, Chandarana &amp; Eastmatt — in KES.</p>
-</header>
-
-<div class="search-wrap">
-  <div class="search-box">
-    <input type="text" id="search-input" placeholder="e.g. 2kg Jogoo Unga, 500ml Omo, Brookside milk…" autocomplete="off">
-    <button class="search-btn" id="search-btn" onclick="searchPrices()">
-      <div class="spinner" id="spinner"></div>
-      <span id="btn-label">Compare Prices</span>
-    </button>
-  </div>
-</div>
-
-<div class="suggestions">
-  <div class="suggestion-pill" onclick="quickSearch('2kg Jogoo Unga flour')">🌾 Jogoo Unga 2kg</div>
-  <div class="suggestion-pill" onclick="quickSearch('Brookside fresh milk 500ml')">🥛 Brookside Milk 500ml</div>
-  <div class="suggestion-pill" onclick="quickSearch('Omo washing powder 1kg')">🧺 Omo 1kg</div>
-  <div class="suggestion-pill" onclick="quickSearch('Indomie instant noodles')">🍜 Indomie noodles</div>
-  <div class="suggestion-pill" onclick="quickSearch('Ketepa tea 100 bags')">☕ Ketepa Tea</div>
-  <div class="suggestion-pill" onclick="quickSearch('Raha cooking oil 2 litres')">🫙 Raha Oil 2L</div>
-</div>
-
-<div class="error-box" id="error-box"></div>
-
-<div id="results"></div>
-
-<footer>
-  Prices are AI-estimated based on typical Kenyan supermarket pricing. Always verify at the store.<br>
-  Powered by Claude AI · Beisawa 2025
-</footer>
-
-<script>
-const STORES = [
-  { name: 'Naivas',      emoji: '🛒', id: 'naivas'      },
-  { name: 'Carrefour',   emoji: '🏬', id: 'carrefour'   },
-  { name: 'Quickmart',   emoji: '⚡', id: 'quickmart'   },
-  { name: 'Chandarana',  emoji: '🧺', id: 'chandarana'  },
-  { name: 'Eastmatt',    emoji: '🏪', id: 'eastmatt'    },
-];
-
-let loading = false;
-
-document.getElementById('search-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') searchPrices();
-});
-
-function quickSearch(query) {
-  document.getElementById('search-input').value = query;
-  searchPrices();
-}
-
-function showError(msg) {
-  const box = document.getElementById('error-box');
-  box.textContent = msg;
-  box.style.display = 'block';
-}
-
-function hideError() {
-  document.getElementById('error-box').style.display = 'none';
-}
-
-function setLoading(on) {
-  loading = on;
-  const btn = document.getElementById('search-btn');
-  const spinner = document.getElementById('spinner');
-  const label = document.getElementById('btn-label');
-  btn.disabled = on;
-  spinner.style.display = on ? 'block' : 'none';
-  label.textContent = on ? 'Comparing…' : 'Compare Prices';
-}
-
-function showSkeleton() {
-  document.getElementById('results').innerHTML = `
-    <div class="skeleton-grid">
-      ${STORES.map(() => `
-        <div class="skeleton-card">
-          <div class="skeleton-line short"></div>
-          <div class="skeleton-line tall"></div>
-          <div class="skeleton-line short"></div>
-        </div>
-      `).join('')}
-    </div>
-  `;
-}
-
-async function searchPrices() {
-  if (loading) return;
-  const query = document.getElementById('search-input').value.trim();
-  if (!query) {
-    showError('Please enter a product to search.');
-    return;
+  .bsw-spin {
+    width: 13px; height: 13px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: bswSpin 0.7s linear infinite;
+    display: inline-block;
   }
-  hideError();
-  setLoading(true);
-  showSkeleton();
 
-  const prompt = `You are a Kenyan grocery price database. The user wants to compare prices for: "${query}"
+  @keyframes bswSpin { to { transform: rotate(360deg); } }
+`;
 
-Return ONLY a JSON object with NO markdown, NO explanation, NO backticks. The format must be exactly:
+export default function Beisawa() {
+  const [query, setQuery] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [results, setResults] = useState(null);
+  const [searched, setSearched] = useState("");
+
+  const search = useCallback(async (q) => {
+    const term = (q || query).trim();
+    if (!term) return;
+    setError("");
+    setResults(null);
+    setLoading(true);
+    setSearched(term);
+
+    const prompt = `You are a Kenyan grocery price estimator. The user wants to compare supermarket prices for: "${term}"
+
+Return ONLY a raw JSON object — no markdown, no backticks, no explanation. Format:
 
 {
   "product": "Full product name and size",
-  "category": "category like Flour, Dairy, Detergent etc",
   "stores": [
     { "name": "Naivas",     "price": 145, "available": true  },
     { "name": "Carrefour",  "price": 152, "available": true  },
@@ -551,120 +411,191 @@ Return ONLY a JSON object with NO markdown, NO explanation, NO backticks. The fo
     { "name": "Chandarana", "price": 158, "available": true  },
     { "name": "Eastmatt",   "price": 138, "available": true  }
   ],
-  "note": "brief note about price variability or availability in Kenya"
+  "note": "one sentence about price variability or tips"
 }
 
 Rules:
-- Prices must be realistic Kenyan KES prices for 2024-2025
-- Prices should have NATURAL variation between stores (5-20% range typically)
-- If a product is typically NOT stocked at a store, set available: false and price: null
-- Do not invent unrealistic prices
-- Return ONLY raw JSON, no markdown, no backticks`;
+- Use realistic 2024-2025 Kenyan KES prices
+- Natural variation between stores (roughly 5-20%)
+- If a store wouldn't stock the product, set available: false and price: null
+- Return ONLY raw JSON`;
 
-  try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
+    try {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 800,
+          messages: [{ role: "user", content: prompt }],
+        }),
+      });
 
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({}));
-      throw new Error(err.error?.message || `API error ${response.status}`);
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}));
+        throw new Error(e.error?.message || `Error ${res.status}`);
+      }
+
+      const data = await res.json();
+      const text = data.content?.find(b => b.type === "text")?.text || "";
+      const clean = text.replace(/```json|```/g, "").trim();
+      setResults(JSON.parse(clean));
+    } catch (err) {
+      setError("Could not fetch prices: " + err.message);
+    } finally {
+      setLoading(false);
     }
+  }, [query]);
 
-    const data = await response.json();
-    const text = data.content?.find(b => b.type === 'text')?.text || '';
+  const handleKey = (e) => { if (e.key === "Enter") search(); };
+  const quickSearch = (q) => { setQuery(q); search(q); };
 
-    // Strip any accidental markdown
-    const clean = text.replace(/```json|```/g, '').trim();
-    const parsed = JSON.parse(clean);
-    renderResults(parsed, query);
+  const storeEmoji = { Naivas: "🛒", Carrefour: "🏬", Quickmart: "⚡", Chandarana: "🧺", Eastmatt: "🏪" };
 
-  } catch (err) {
-    showError('Could not fetch prices: ' + err.message);
-    document.getElementById('results').innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">⚠️</div>
-        <div class="empty-title">Something went wrong</div>
-        <div class="empty-desc">Could not fetch prices: ${err.message}</div>
-      </div>`;
-  } finally {
-    setLoading(false);
-  }
-}
+  const today = new Date().toLocaleDateString("en-KE", { day: "numeric", month: "short", year: "numeric" });
 
-function renderResults(data, query) {
-  const available = data.stores.filter(s => s.available && s.price != null);
-  if (!available.length) {
-    document.getElementById('results').innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">🔍</div>
-        <div class="empty-title">No prices found</div>
-        <div class="empty-desc">We couldn't estimate prices for "${query}". Try a different product name.</div>
-      </div>`;
-    return;
+  let cheapestPrice = null, maxPrice = null, cheapestName = "", priciest = "";
+  if (results) {
+    const avail = results.stores.filter(s => s.available && s.price != null);
+    if (avail.length) {
+      cheapestPrice = Math.min(...avail.map(s => s.price));
+      maxPrice = Math.max(...avail.map(s => s.price));
+      cheapestName = avail.find(s => s.price === cheapestPrice)?.name || "";
+      priciest = avail.find(s => s.price === maxPrice)?.name || "";
+    }
   }
 
-  const prices = available.map(s => s.price);
-  const minPrice = Math.min(...prices);
-  const maxPrice = Math.max(...prices);
-  const savings = maxPrice - minPrice;
-  const cheapest = available.find(s => s.price === minPrice);
-  const priciest = available.find(s => s.price === maxPrice);
+  return (
+    <>
+      <style>{css}</style>
+      <div className="bsw-root">
+        <header className="bsw-header">
+          <div className="bsw-badge">🇰🇪 Kenya</div>
+          <h1 className="bsw-h1">
+            Save money on every shop.<br />
+            <em>Compare prices</em> in seconds.
+          </h1>
+          <p className="bsw-subtitle">
+            AI-estimated prices across Naivas, Carrefour, Quickmart, Chandarana &amp; Eastmatt — in KES.
+          </p>
+        </header>
 
-  const storeEmojis = { Naivas: '🛒', Carrefour: '🏬', Quickmart: '⚡', Chandarana: '🧺', Eastmatt: '🏪' };
-
-  const cards = data.stores.map((store, i) => {
-    const isCheapest = store.available && store.price === minPrice;
-    const isPriciest = store.available && store.price === maxPrice && store.price !== minPrice;
-    const barPct = store.available && store.price ? Math.round((store.price / maxPrice) * 100) : 0;
-    const delay = i * 0.06;
-
-    return `
-      <div class="store-card ${isCheapest ? 'cheapest' : ''} ${isPriciest ? 'priciest' : ''}" style="animation-delay:${delay}s">
-        <div class="store-name">
-          <span class="store-emoji">${storeEmojis[store.name] || '🏪'}</span>
-          ${store.name}
+        <div className="bsw-search-wrap">
+          <div className="bsw-search-box">
+            <input
+              className="bsw-input"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              onKeyDown={handleKey}
+              placeholder="e.g. 2kg Jogoo Unga, 500ml Omo, Brookside milk…"
+              autoComplete="off"
+            />
+            <button className="bsw-btn" onClick={() => search()} disabled={loading}>
+              {loading ? <span className="bsw-spin" /> : null}
+              {loading ? "Comparing…" : "Compare Prices"}
+            </button>
+          </div>
         </div>
-        ${store.available && store.price != null
-          ? `<div class="store-price"><span class="currency">KES</span>${store.price.toLocaleString()}</div>
-             <div class="store-availability">In stock</div>
-             <div class="price-bar"><div class="price-bar-fill" style="width:${barPct}%"></div></div>`
-          : `<div class="store-price" style="font-size:20px;color:var(--muted)">N/A</div>
-             <div class="store-availability na">Not typically stocked</div>`
-        }
-      </div>`;
-  }).join('');
 
-  document.getElementById('results').innerHTML = `
-    <div class="results-header">
-      <div class="results-title">Prices for <span>${data.product}</span></div>
-      <div class="results-meta">AI-estimated · ${new Date().toLocaleDateString('en-KE', {day:'numeric',month:'short',year:'numeric'})}</div>
-    </div>
+        <div className="bsw-suggestions">
+          {SUGGESTIONS.map(s => (
+            <button key={s.query} className="bsw-pill" onClick={() => quickSearch(s.query)}>
+              {s.label}
+            </button>
+          ))}
+        </div>
 
-    <div class="best-deal-banner">
-      <div class="best-deal-icon">🏆</div>
-      <div>
-        <div class="best-deal-label">Best deal</div>
-        <div class="best-deal-text">${cheapest.name} at KES ${minPrice.toLocaleString()}</div>
+        {error && <div className="bsw-error">{error}</div>}
+
+        {loading && (
+          <div className="bsw-skeleton-grid">
+            {STORES.map(s => (
+              <div key={s.name} className="bsw-skel">
+                <div className="bsw-skel-line short" />
+                <div className="bsw-skel-line tall" />
+                <div className="bsw-skel-line short" />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {results && !loading && (
+          <div className="bsw-results">
+            <div className="bsw-results-header">
+              <div className="bsw-results-title">
+                Prices for <span>{results.product}</span>
+              </div>
+              <div className="bsw-results-meta">AI-estimated · {today}</div>
+            </div>
+
+            {cheapestPrice != null && (
+              <div className="bsw-best">
+                <div className="bsw-best-icon">🏆</div>
+                <div>
+                  <div className="bsw-best-label">Best deal</div>
+                  <div className="bsw-best-text">
+                    {cheapestName} at KES {cheapestPrice.toLocaleString()}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {cheapestPrice != null && maxPrice > cheapestPrice && (
+              <div className="bsw-savings">
+                💰 Save up to <strong style={{margin:"0 4px"}}>KES {(maxPrice - cheapestPrice).toLocaleString()}</strong>
+                by choosing {cheapestName} over {priciest}
+              </div>
+            )}
+
+            <div className="bsw-grid">
+              {results.stores.map((store, i) => {
+                const avail = results.stores.filter(s => s.available && s.price != null);
+                const max = avail.length ? Math.max(...avail.map(s => s.price)) : 1;
+                const isCheapest = store.available && store.price === cheapestPrice;
+                const isPriciest = store.available && store.price === maxPrice && maxPrice !== cheapestPrice;
+                const barPct = store.available && store.price ? Math.round((store.price / max) * 100) : 0;
+
+                return (
+                  <div
+                    key={store.name}
+                    className={`bsw-card${isCheapest ? " cheapest" : ""}${isPriciest ? " priciest" : ""}`}
+                    style={{ animationDelay: `${i * 0.06}s` }}
+                  >
+                    <div className="bsw-store-name">
+                      <span>{storeEmoji[store.name] || "🏪"}</span>
+                      {store.name}
+                    </div>
+                    {store.available && store.price != null ? (
+                      <>
+                        <div className="bsw-price">
+                          <span className="bsw-currency">KES</span>
+                          {store.price.toLocaleString()}
+                        </div>
+                        <div className="bsw-avail">In stock</div>
+                        <div className="bsw-bar">
+                          <div className="bsw-bar-fill" style={{ width: `${barPct}%` }} />
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="bsw-price" style={{ fontSize: 18, color: "var(--muted)" }}>N/A</div>
+                        <div className="bsw-avail na">Not typically stocked</div>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {results.note && <div className="bsw-note">ℹ️ {results.note}</div>}
+
+            <div className="bsw-footer">
+              Prices are AI-estimated based on typical Kenyan supermarket pricing. Always verify at the store.<br />
+              Powered by Claude AI · Beisawa 2025
+            </div>
+          </div>
+        )}
       </div>
-    </div>
-
-    ${savings > 0 ? `
-    <div class="savings-row">
-      💰 You could save up to <strong>KES ${savings.toLocaleString()}</strong> by shopping at ${cheapest.name} instead of ${priciest.name}
-    </div>` : ''}
-
-    <div class="stores-grid">${cards}</div>
-
-    ${data.note ? `<div class="ai-note">ℹ️ ${data.note}</div>` : ''}
-  `;
+    </>
+  );
 }
-</script>
-</body>
-</html>
